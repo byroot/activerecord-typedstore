@@ -17,7 +17,7 @@ shared_examples 'a model' do
 
     it 'raise an ActiveRecord::UnknownAttributeError on save attemps' do
       expect {
-        model.update(unknown_attribute: 42)
+        model.update_attributes(unknown_attribute: 42)
       }.to raise_error ActiveRecord::UnknownAttributeError
     end
 
@@ -44,7 +44,7 @@ shared_examples 'a model' do
     end
 
     it 'properly cast the value as string' do
-      model.update(name: 42)
+      model.update_attributes(name: 42)
       expect(model.reload.name).to be == '42'
     end
 
@@ -75,9 +75,9 @@ shared_examples 'a model' do
     end
 
     it 'properly persit the value' do
-      model.update(public: false)
+      model.update_attributes(public: false)
       expect(model.reload.public).to be_false
-      model.update(public: true)
+      model.update_attributes(public: true)
       expect(model.reload.public).to be_true
     end
 
@@ -88,7 +88,7 @@ shared_examples 'a model' do
     end
 
     it 'can store nil if the column is nullable' do
-      model.update(enabled: nil)
+      model.update_attributes(enabled: nil)
       expect(model.reload.enabled).to be_nil
     end
 
@@ -116,7 +116,7 @@ shared_examples 'a model' do
     end
 
     it 'can store nil if the column is nullable' do
-      model.update(max_length: nil)
+      model.update_attributes(max_length: nil)
       expect(model.reload.max_length).to be_nil
     end
 
@@ -139,7 +139,7 @@ shared_examples 'a model' do
     end
 
     it 'can store nil if the column is nullable' do
-      model.update(price: nil)
+      model.update_attributes(price: nil)
       expect(model.reload.price).to be_nil
     end
 
@@ -165,13 +165,13 @@ shared_examples 'a model' do
     end
 
     it 'retreive a BigDecimal instance' do
-      model.update(shipping_cost: 4.2)
+      model.update_attributes(shipping_cost: 4.2)
       expect(model.reload.shipping_cost).to be == BigDecimal.new('4.2')
       expect(model.reload.shipping_cost).to be_a BigDecimal
     end
 
     it 'can store nil if the column is nullable' do
-      model.update(shipping_cost: nil)
+      model.update_attributes(shipping_cost: nil)
       expect(model.reload.shipping_cost).to be_nil
     end
 
@@ -191,7 +191,7 @@ shared_examples 'a model' do
     end
 
     it 'retreive a Date instance' do
-      model.update(published_on: date)
+      model.update_attributes(published_on: date)
       expect(model.reload.published_on).to be == date
     end
 
@@ -201,7 +201,7 @@ shared_examples 'a model' do
     end
 
     it 'can store nil if the column is nullable' do
-      model.update(remind_on: nil)
+      model.update_attributes(remind_on: nil)
       expect(model.reload.remind_on).to be_nil
     end
 
@@ -222,7 +222,7 @@ shared_examples 'a model' do
     end
 
     it 'retreive a DateTime instance' do
-      model.update(published_at: datetime)
+      model.update_attributes(published_at: datetime)
       expect(model.reload.published_at).to be == datetime
     end
 
@@ -232,7 +232,7 @@ shared_examples 'a model' do
     end
 
     it 'can store nil if the column is nullable' do
-      model.update(remind_at: nil)
+      model.update_attributes(remind_at: nil)
       expect(model.reload.remind_at).to be_nil
     end
 
