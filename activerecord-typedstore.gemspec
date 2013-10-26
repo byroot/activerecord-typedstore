@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = ActiveRecord::TypedStore::VERSION
   spec.authors       = ['Jean Boussier']
   spec.email         = ['jean.boussier@gmail.com']
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
-  spec.homepage      = ''
+  spec.description   = %q{ActiveRecord::Store but with type definition}
+  spec.summary       = %q{ActiveRecord::Store but with type definition}
+  spec.homepage      = 'https://github.com/byroot/activerecord-typedstore'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files`.split($/)
