@@ -36,7 +36,6 @@ class Shop < ActiveRecord::Base
 
 end
 
-
 shop = Shop.new(email: 'george@cyclim.se')
 shop.public?        # => false
 shop.email          # => 'george@cyclim.se'
@@ -45,6 +44,7 @@ shop.published_at   # => nil
 
 Type casting rules and attribute behavior are exactly the same as a for real database columns.
 Actually the only difference is that you wont be able to query on these attributes (unless you use Postgres JSON or HStore types) and that you don't need to do a migration to add / remove an attribute.
+
 If not please fill an issue.
 
 ## Contributing
