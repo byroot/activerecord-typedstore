@@ -1,3 +1,5 @@
-module ActiveRecord::TypedStore
-  VERSION = '0.0.1'
+module ActiveRecord
+  module TypedStore
+    VERSION = '0.0.1'
+  end
 end
