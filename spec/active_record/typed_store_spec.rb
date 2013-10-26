@@ -1,5 +1,9 @@
 require 'spec_helper'
 
+ar_version = Gem::Version.new(ActiveRecord::VERSION::STRING)
+ar_4_0 = Gem::Version.new('4.0')
+ar_4_1 = Gem::Version.new('4.1')
+
 shared_examples 'a model' do
 
   let(:model) { described_class.new }
@@ -210,20 +214,53 @@ shared_examples 'a model' do
   describe 'datetime attributes' do
 
     let(:datetime) { DateTime.new(1984, 6, 8, 13, 57, 12) }
+    let(:datetime_string) { '1984-06-08 13:57:12' }
+    let(:time) { Time.parse(datetime_string) }
 
-    it 'has the defined default as initial value' do
-      model.save
-      expect(model.published_at).to be == datetime
-    end
+    context "with ActiveRecord #{ActiveRecord::VERSION::STRING}" do
 
-    it 'properly cast assigned value to datetime' do
-      model.remind_at = '1984-06-08 13:57:12'
-      expect(model.remind_at).to be == datetime
-    end
+      if ar_version < ar_4_0
 
-    it 'retreive a DateTime instance' do
-      model.update_attributes(published_at: datetime)
-      expect(model.reload.published_at).to be == datetime
+        it 'has the defined default as initial value' do
+          model.save
+          expect(model.published_at).to be == time
+        end
+
+        it 'properly cast assigned value to time' do
+          model.remind_at = datetime_string
+          expect(model.remind_at).to be == time
+        end
+
+        it 'properly cast assigned value to time on save' do
+          model.remind_at = datetime_string
+          model.save
+          model.reload
+          expect(model.remind_at).to be == time
+        end
+
+        it 'retreive a Time instance' do
+          model.update_attributes(published_at: datetime)
+          expect(model.reload.published_at).to be == time
+        end
+
+      else
+
+        it 'has the defined default as initial value' do
+          model.save
+          expect(model.published_at).to be == datetime
+        end
+
+        it 'retreive a DateTime instance' do
+          model.update_attributes(published_at: datetime)
+          expect(model.reload.published_at).to be == datetime
+        end
+
+        it 'properly cast assigned value to datetime' do
+          model.remind_at = datetime_string
+          expect(model.remind_at).to be == datetime
+        end
+      end
+
     end
 
     it 'nillify unparsable datetimes' do
