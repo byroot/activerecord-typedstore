@@ -1,5 +1,7 @@
 # ActiveRecord::TypedStore
 
+[![Build Status](https://secure.travis-ci.org/byroot/activerecord-typedstore.png)](http://travis-ci.org/byroot/activerecord-typedstore)
+
 [ActiveRecord::Store](http://api.rubyonrails.org/classes/ActiveRecord/Store.html) but with typed attributes.
 
 ## Installation
