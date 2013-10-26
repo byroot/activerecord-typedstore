@@ -14,6 +14,10 @@ module ActiveRecord::TypedStore
         return value.to_s unless value.nil? && null
       end
 
+      if !IS_AR_4 && type == :datetime && value.is_a?(DateTime)
+        return super(value.iso8601)
+      end
+
       super
     end
 
