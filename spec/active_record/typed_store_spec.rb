@@ -145,7 +145,6 @@ shared_examples 'a model' do
 
   end
 
-
   describe 'decimal attributes' do
 
     it 'has the defined default as initial value' do
@@ -159,10 +158,16 @@ shared_examples 'a model' do
       expect(model.shipping_cost).to be_a BigDecimal
     end
 
-    it 'properly cast non numeric values to float' do
+    it 'properly cast non numeric values to decimal' do
       model.total_price = 'foo'
       expect(model.total_price).to be == 0
       expect(model.total_price).to be_a BigDecimal
+    end
+
+    it 'retreive a BigDecimal instance' do
+      model.update(shipping_cost: 4.2)
+      expect(model.reload.shipping_cost).to be == BigDecimal.new('4.2')
+      expect(model.reload.shipping_cost).to be_a BigDecimal
     end
 
     it 'can store nil if the column is nullable' do
@@ -174,13 +179,20 @@ shared_examples 'a model' do
 
   describe 'date attributes' do
 
+    let(:date) { Date.new(1984, 6, 8) }
+
     it 'has the defined default as initial value' do
-      expect(model.published_on).to be == Date.new(1984, 6, 8)
+      expect(model.published_on).to be == date
     end
 
     it 'properly cast assigned value to date' do
       model.remind_on = '1984-06-08'
-      expect(model.remind_on).to be == Date.new(1984, 6, 8)
+      expect(model.remind_on).to be == date
+    end
+
+    it 'retreive a Date instance' do
+      model.update(published_on: date)
+      expect(model.reload.published_on).to be == date
     end
 
     it 'nillify unparsable dates' do
@@ -197,14 +209,21 @@ shared_examples 'a model' do
 
   describe 'datetime attributes' do
 
+    let(:datetime) { DateTime.new(1984, 6, 8, 13, 57, 12) }
+
     it 'has the defined default as initial value' do
       model.save
-      expect(model.published_at).to be == DateTime.new(1984, 6, 8, 13, 57, 12)
+      expect(model.published_at).to be == datetime
     end
 
     it 'properly cast assigned value to datetime' do
       model.remind_at = '1984-06-08 13:57:12'
-      expect(model.remind_at).to be == DateTime.new(1984, 6, 8, 13, 57, 12)
+      expect(model.remind_at).to be == datetime
+    end
+
+    it 'retreive a DateTime instance' do
+      model.update(published_at: datetime)
+      expect(model.reload.published_at).to be == datetime
     end
 
     it 'nillify unparsable datetimes' do
@@ -225,6 +244,14 @@ describe RegularARModel do
   it_should_behave_like 'a model'
 end
 
-describe TypedStoreModel do
+describe YamlTypedStoreModel do
+  it_should_behave_like 'a model'
+end
+
+describe JsonTypedStoreModel do
+  it_should_behave_like 'a model'
+end
+
+describe MarshalTypedStoreModel do
   it_should_behave_like 'a model'
 end

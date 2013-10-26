@@ -40,8 +40,10 @@ module ActiveRecord::TypedStore
       attribute = super
       if columns = self.class.stored_typed_attributes[store_attribute]
         columns.each do |name, definition|
-          if !attribute.has_key?(name) && definition.has_default?
-            attribute[name] = definition.default 
+          if attribute.has_key?(name)
+            attribute[name] = definition.type_cast(attribute[name])
+          else
+            attribute[name] = definition.default if definition.has_default?
           end
         end
       end
