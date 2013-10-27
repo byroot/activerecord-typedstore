@@ -2,7 +2,7 @@ require 'spec_helper'
 
 ar_version = Gem::Version.new(ActiveRecord::VERSION::STRING)
 ar_4_0 = Gem::Version.new('4.0')
-ar_4_1 = Gem::Version.new('4.1')
+ar_4_1 = Gem::Version.new('4.1.0.beta')
 
 shared_examples 'a model' do
 
@@ -247,7 +247,7 @@ shared_examples 'a model' do
 
         it 'has the defined default as initial value' do
           model.save
-          expect(model.published_at).to be == datetime
+          expect(model.reload.published_at).to be == datetime
         end
 
         it 'retreive a DateTime instance' do
