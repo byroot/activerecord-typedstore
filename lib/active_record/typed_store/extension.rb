@@ -29,22 +29,30 @@ module ActiveRecord::TypedStore
           after_initialize { initialize_store_attribute(store_attribute) }
         end
 
-        if IS_AR_3_2
-          dsl.columns.each do |column|
-            define_method("#{column.name}_with_type_casting=") do |value|
-              self.send("#{column.name}_without_type_casting=", column.type_cast(value))
-            end
-            alias_method_chain "#{column.name}=", :type_casting
+        _ar_32_fallback_accessors(store_attribute, dsl.columns) if IS_AR_3_2
+      end
 
-            define_method(column.name) do
-              send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
-              store = send(store_attribute)
-              store.has_key?(column.name) ? store[column.name] : column.default
-            end
-          end
+      protected
+
+      def _ar_32_fallback_accessors(store_attribute, columns)
+        columns.each do |column|
+          _ar_32_fallback_accessor(store_attribute, column)
         end
       end
 
+      def _ar_32_fallback_accessor(store_attribute, column)
+        define_method("#{column.name}_with_type_casting=") do |value|
+          self.send("#{column.name}_without_type_casting=", column.type_cast(value))
+        end
+        alias_method_chain "#{column.name}=", :type_casting
+
+        define_method(column.name) do
+          send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
+          store = send(store_attribute)
+          store.has_key?(column.name) ? store[column.name] : column.default
+        end
+      end
+      
     end
 
     protected
