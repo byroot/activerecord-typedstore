@@ -9,25 +9,25 @@ def define_columns(t)
   t.integer :no_default
 
   t.string :name, default: '', null: false
-  t.string :email, null: true
+  t.string :email
 
   t.boolean :public, default: false, null: false
-  t.boolean :enabled, default: true, null: true
+  t.boolean :enabled, default: true
 
   t.integer :age, default: 12, null: false
-  t.integer :max_length, null: true
+  t.integer :max_length
 
   t.float :rate, default: 0, null: false
-  t.float :price, null: true
+  t.float :price
 
   t.date :published_on, default: '1984-06-08', null: false
-  t.date :remind_on, null: true
+  t.date :remind_on
 
   t.datetime :published_at, default: '1984-06-08 13:57:12', null: false
-  t.datetime :remind_at, null: true
+  t.datetime :remind_at
 
   t.decimal :total_price, default: 4.2, null: false
-  t.decimal :shipping_cost, null: true
+  t.decimal :shipping_cost
 
 end
 

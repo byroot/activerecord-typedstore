@@ -6,7 +6,7 @@ module ActiveRecord::TypedStore
       @name = name
       @type = type
       @default = extract_default(options.fetch(:default, nil))
-      @null = options.fetch(:null, false)
+      @null = options.fetch(:null, true)
     end
 
     def type_cast(value)
