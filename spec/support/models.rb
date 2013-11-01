@@ -8,25 +8,25 @@ ActiveRecord::Base.establish_connection('test')
 def define_columns(t)
   t.integer :no_default
 
-  t.string :name, default: ''
+  t.string :name, default: '', null: false
   t.string :email, null: true
 
-  t.boolean :public, default: false
+  t.boolean :public, default: false, null: false
   t.boolean :enabled, default: true, null: true
 
-  t.integer :age, default: 0
+  t.integer :age, default: 12, null: false
   t.integer :max_length, null: true
 
-  t.float :rate, default: 0
+  t.float :rate, default: 0, null: false
   t.float :price, null: true
 
-  t.date :published_on, default: '1984-06-08'
+  t.date :published_on, default: '1984-06-08', null: false
   t.date :remind_on, null: true
 
-  t.datetime :published_at, default: '1984-06-08 13:57:12'
+  t.datetime :published_at, default: '1984-06-08 13:57:12', null: false
   t.datetime :remind_at, null: true
 
-  t.decimal :total_price, default: 4.2
+  t.decimal :total_price, default: 4.2, null: false
   t.decimal :shipping_cost, null: true
 
 end

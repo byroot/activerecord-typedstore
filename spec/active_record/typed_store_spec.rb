@@ -4,7 +4,7 @@ ar_version = Gem::Version.new(ActiveRecord::VERSION::STRING)
 ar_4_0 = Gem::Version.new('4.0')
 ar_4_1 = Gem::Version.new('4.1.0.beta')
 
-shared_examples 'a model' do
+shared_examples 'any model' do
 
   let(:model) { described_class.new }
 
@@ -106,7 +106,7 @@ shared_examples 'a model' do
   describe 'integer attributes' do
 
     it 'has the defined default as initial value' do
-      expect(model.age).to be_zero
+      expect(model.age).to be == 12
     end
 
     it 'properly cast assigned value to integer' do
@@ -200,8 +200,8 @@ shared_examples 'a model' do
     end
 
     it 'nillify unparsable dates' do
-      model.published_on = 'foo'
-      expect(model.published_on).to be_nil
+      model.update_attributes(remind_on: 'foo')
+      expect(model.remind_on).to be_nil
     end
 
     it 'can store nil if the column is nullable' do
@@ -264,8 +264,8 @@ shared_examples 'a model' do
     end
 
     it 'nillify unparsable datetimes' do
-      model.published_at = 'foo'
-      expect(model.published_at).to be_nil
+      model.update_attributes(remind_at: 'foo')
+      expect(model.remind_at).to be_nil
     end
 
     it 'can store nil if the column is nullable' do
@@ -277,18 +277,49 @@ shared_examples 'a model' do
 
 end
 
+shared_examples 'a store' do
+
+  let(:model) { described_class.new }
+
+  describe 'attributes' do
+
+    it 'retrieve default if assigned nil and null not allowed' do
+      model.update_attributes(age: nil)
+      expect(model.age).to be == 12
+    end
+
+  end
+
+end
+
+shared_examples 'a db backed model' do
+
+  let(:model) { described_class.new }
+
+  it 'let the underlying db raise if assigned nil on non nullable column' do
+    expect {
+      model.update_attributes(age: nil)
+    }.to raise_error(ActiveRecord::StatementInvalid)
+  end
+
+end
+
 describe RegularARModel do
-  it_should_behave_like 'a model'
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a db backed model'
 end
 
 describe YamlTypedStoreModel do
-  it_should_behave_like 'a model'
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a store'
 end
 
 describe JsonTypedStoreModel do
-  it_should_behave_like 'a model'
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a store'
 end
 
 describe MarshalTypedStoreModel do
-  it_should_behave_like 'a model'
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a store'
 end

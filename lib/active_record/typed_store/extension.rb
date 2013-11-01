@@ -62,12 +62,21 @@ module ActiveRecord::TypedStore
       if store_definition = self.class.stored_typed_attributes[store_attribute]
         if column_definition = store_definition[key]
           casted_value = column_definition.type_cast(value)
+          if !column_definition.null && (value.nil? || casted_value.nil?)
+            remove_store_attribute(store_attribute, key)
+            return
+          end
         end
       end
       super(store_attribute, key, casted_value)
     end
 
     private
+
+    def remove_store_attribute(store_attribute, key)
+      store = send(store_attribute)
+      store.delete(key)
+    end
 
     def initialize_store_attribute(store_attribute)
       attribute = IS_AR_4_0 ? super : send(store_attribute)
