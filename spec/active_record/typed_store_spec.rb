@@ -313,7 +313,13 @@ shared_examples 'a db backed model' do
 
 end
 
-describe RegularARModel do
+describe Sqlite3RegularARModel do
+  ActiveRecord::Base.establish_connection('test_sqlite3')
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a db backed model'
+end
+
+describe PostgresqlRegularARModel do
   it_should_behave_like 'any model'
   it_should_behave_like 'a db backed model'
 end

@@ -2,8 +2,10 @@ require 'active_record'
 require 'json'
 require 'yaml'
 
-ActiveRecord::Base.configurations = {'test' => {:adapter => 'sqlite3', :database => ':memory:'}}
-ActiveRecord::Base.establish_connection('test')
+ActiveRecord::Base.configurations = {
+  'test_sqlite3' => {adapter: 'sqlite3', database: "/tmp/typed_store.db"},
+  'test_postgresql' => {adapter: 'postgresql', database: 'typed_store_test', username: 'postgres'},
+}
 
 def define_columns(t)
   t.integer :no_default
@@ -32,21 +34,38 @@ def define_columns(t)
 end
 
 class CreateAllTables < ActiveRecord::Migration
+
+  def self.recreate_table(name, *args, &block)
+    execute "drop table if exists #{name}"
+    create_table(name, *args, &block)
+  end
+
   def self.up
-    create_table(:regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
-    create_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
-    create_table(:json_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
-    create_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
+    ActiveRecord::Base.establish_connection('test_postgresql')
+    recreate_table(:postgresql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+
+    ActiveRecord::Base.establish_connection('test_sqlite3')
+    recreate_table(:sqlite3_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+    recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
+    recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
+    recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
   end
 end
 ActiveRecord::Migration.verbose = false
 CreateAllTables.up
 
-class RegularARModel < ActiveRecord::Base
+class PostgresqlRegularARModel < ActiveRecord::Base
+  establish_connection 'test_postgresql'
+  store :untyped_settings, accessors: [:title]
+end
+
+class Sqlite3RegularARModel < ActiveRecord::Base
+  establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
 end
 
 class YamlTypedStoreModel < ActiveRecord::Base
+  establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings do |s|
     define_columns(s)
@@ -71,6 +90,7 @@ class ColumnCoder
 end
 
 class JsonTypedStoreModel < ActiveRecord::Base
+  establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(JSON) do |s|
     define_columns(s)
@@ -78,6 +98,7 @@ class JsonTypedStoreModel < ActiveRecord::Base
 end
 
 class MarshalTypedStoreModel < ActiveRecord::Base
+  establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(Marshal) do |s|
     define_columns(s)

@@ -5,3 +5,6 @@ gemfile:
   - gemfiles/Gemfile.ar-3.2
   - gemfiles/Gemfile.ar-4.0
   - gemfiles/Gemfile.ar-edge
+
+before_script:
+  - psql -c 'create database typed_store_test;' -U postgres
