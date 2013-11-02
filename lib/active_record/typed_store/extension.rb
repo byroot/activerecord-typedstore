@@ -65,8 +65,7 @@ module ActiveRecord::TypedStore
         if column_definition = store_definition[key]
           casted_value = column_definition.type_cast(value)
           if !column_definition.null && (value.nil? || casted_value.nil?)
-            remove_store_attribute(store_attribute, key)
-            return
+            casted_value = column_definition.default
           end
         end
       end
@@ -74,11 +73,6 @@ module ActiveRecord::TypedStore
     end
 
     private
-
-    def remove_store_attribute(store_attribute, key)
-      store = send(store_attribute)
-      store.delete(key)
-    end
 
     def initialize_store_attribute(store_attribute)
       attribute = IS_AR_4_0 ? super : send(store_attribute)
