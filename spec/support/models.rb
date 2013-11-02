@@ -5,6 +5,7 @@ require 'yaml'
 ActiveRecord::Base.configurations = {
   'test_sqlite3' => {adapter: 'sqlite3', database: "/tmp/typed_store.db"},
   'test_postgresql' => {adapter: 'postgresql', database: 'typed_store_test', username: 'postgres'},
+  'test_mysql' => {adapter: 'mysql2', database: 'typed_store_test', username: 'travis'},
 }
 
 def define_columns(t)
@@ -28,8 +29,8 @@ def define_columns(t)
   t.datetime :published_at, default: '1984-06-08 13:57:12', null: false
   t.datetime :remind_at
 
-  t.decimal :total_price, default: 4.2, null: false
-  t.decimal :shipping_cost
+  t.decimal :total_price, default: 4.2, null: false, precision: 16, scale: 2
+  t.decimal :shipping_cost, precision: 16, scale: 2
 
 end
 
@@ -41,6 +42,9 @@ class CreateAllTables < ActiveRecord::Migration
   end
 
   def self.up
+    ActiveRecord::Base.establish_connection('test_mysql')
+    recreate_table(:mysql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+
     ActiveRecord::Base.establish_connection('test_postgresql')
     recreate_table(:postgresql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
 
@@ -53,6 +57,11 @@ class CreateAllTables < ActiveRecord::Migration
 end
 ActiveRecord::Migration.verbose = false
 CreateAllTables.up
+
+class MysqlRegularARModel < ActiveRecord::Base
+  establish_connection 'test_mysql'
+  store :untyped_settings, accessors: [:title]
+end
 
 class PostgresqlRegularARModel < ActiveRecord::Base
   establish_connection 'test_postgresql'

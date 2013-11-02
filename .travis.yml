@@ -7,4 +7,5 @@ gemfile:
   - gemfiles/Gemfile.ar-edge
 
 before_script:
+  - mysql -e 'create database typed_store_test;'
   - psql -c 'create database typed_store_test;' -U postgres
