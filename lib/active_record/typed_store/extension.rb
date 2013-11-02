@@ -38,12 +38,10 @@ module ActiveRecord::TypedStore
       casted_value = value
       if store_definition = self.class.stored_typed_attributes[store_attribute]
         if column_definition = store_definition[key]
-          casted_value = column_definition.type_cast(value)
-          if !column_definition.null && (value.nil? || casted_value.nil?)
-            casted_value = column_definition.default
-          end
+          casted_value = column_definition.cast(value)
         end
       end
+
       super(store_attribute, key, casted_value)
     end
 
@@ -60,7 +58,7 @@ module ActiveRecord::TypedStore
     def initialize_store(store, columns)
       columns.each do |column|
         if store.has_key?(column.name)
-          store[column.name] = column.type_cast(store[column.name])
+          store[column.name] = column.cast(store[column.name])
         else
           store[column.name] = column.default if column.has_default?
         end

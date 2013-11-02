@@ -39,6 +39,9 @@ class Shop < ActiveRecord::Base
     
     # You can define array attributes like in rails 4 and postgres
     s.string :tags, array: true, default: [], null: false
+
+    # In addition to prevent null values you can prevent blank values
+    s.string :title, blank: false, default: 'Title'
   end
 
   # You can use any ActiveModel validator

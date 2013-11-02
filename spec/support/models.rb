@@ -34,6 +34,8 @@ def define_columns(t)
 
   t.integer :grades, array: true
   t.string :tags, array: true, null: false, default: []
+
+  t.string :nickname, blank: false, default: 'Please enter your nickname'
 end
 
 class CreateAllTables < ActiveRecord::Migration

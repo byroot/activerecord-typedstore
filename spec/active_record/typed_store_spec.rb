@@ -297,6 +297,11 @@ shared_examples 'a store' do
       expect(model.age).to be == 12
     end
 
+    it 'retreive default if assigned a blank value and column cannot be blank' do
+      model.update_attributes(nickname: '')
+      expect(model.reload.nickname).to be == 'Please enter your nickname'
+    end
+
   end
 
 end

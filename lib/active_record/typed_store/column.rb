@@ -1,7 +1,7 @@
 module ActiveRecord::TypedStore
 
   class Column < ::ActiveRecord::ConnectionAdapters::Column
-    attr_reader :array
+    attr_reader :array, :blank
 
     def initialize(name, type, options={})
       @name = name
@@ -9,6 +9,17 @@ module ActiveRecord::TypedStore
       @array = options.fetch(:array, false)
       @default = extract_default(options.fetch(:default, nil))
       @null = options.fetch(:null, true)
+      @blank = options.fetch(:blank, true)
+    end
+
+    def cast(value)
+      casted_value = type_cast(value)
+      if !blank
+        casted_value = default if casted_value.blank?
+      elsif !null
+        casted_value = default if casted_value.nil?
+      end
+      casted_value
     end
 
     def type_cast(value, map=true)
