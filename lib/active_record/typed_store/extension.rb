@@ -15,7 +15,7 @@ module ActiveRecord::TypedStore
       self.stored_typed_attributes = {}
       if IS_AR_3_2
         require 'active_record/typed_store/ar_32_fallbacks'
-        extend AR32Fallbacks
+        include AR32Fallbacks
       end
     end
 
@@ -58,17 +58,17 @@ module ActiveRecord::TypedStore
     def initialize_store_attribute(store_attribute)
       store = IS_AR_4_0 ? super : send(store_attribute)
       if columns = self.class.stored_typed_attributes[store_attribute]
-        store = initialize_store(store, columns)
+        store = initialize_store(store, columns.values)
       end
       store
     end
 
     def initialize_store(store, columns)
-      columns.each do |name, definition|
-        if store.has_key?(name)
-          store[name] = definition.type_cast(store[name])
+      columns.each do |column|
+        if store.has_key?(column.name)
+          store[column.name] = column.type_cast(store[column.name])
         else
-          store[name] = definition.default if definition.has_default?
+          store[column.name] = column.default if column.has_default?
         end
       end
       store
