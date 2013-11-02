@@ -32,6 +32,8 @@ def define_columns(t)
   t.decimal :total_price, default: 4.2, null: false, precision: 16, scale: 2
   t.decimal :shipping_cost, precision: 16, scale: 2
 
+  t.integer :grades, array: true
+  t.string :tags, array: true, null: false, default: []
 end
 
 class CreateAllTables < ActiveRecord::Migration

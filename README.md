@@ -36,6 +36,9 @@ class Shop < ActiveRecord::Base
     s.string :email, null: true
     s.datetime :publish_at, null: true
     s.integer :age
+    
+    # You can define array attributes like in rails 4 and postgres
+    s.string :tags, array: true, default: [], null: false
   end
 
 end

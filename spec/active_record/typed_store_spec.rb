@@ -313,6 +313,73 @@ shared_examples 'a db backed model' do
 
 end
 
+shared_examples 'a model supporting arrays' do |regular=false|
+
+  let(:model) { described_class.new }
+
+  it 'retrieve an array of values' do
+    model.update_attributes(grades: [1, 2, 3, 4])
+    expect(model.reload.grades).to be == [1, 2, 3, 4]
+  end
+
+  it 'cast values inside the array (integer)' do
+    pending('ActiveRecord bug: https://github.com/rails/rails/pull/11245') if regular
+    model.update_attributes(grades: ['1', 2, 3.4])
+    expect(model.reload.grades).to be == [1, 2, 3]
+  end
+
+  it 'cast values inside the array (string)' do
+    model.update_attributes(tags: [1, 2.3])
+    expect(model.reload.tags).to be == %w(1 2.3)
+  end
+
+  it 'accept nil inside array even if collumn is non nullable' do
+    model.update_attributes(tags: [1, nil])
+    expect(model.reload.tags).to be == ['1', nil]
+  end
+
+  it 'convert non array value as empty array' do
+    model.update_attributes(grades: 'foo')
+    expect(model.reload.grades).to be == []
+  end
+
+  if !regular || ar_version == ar_4_1
+    it 'accept multidimensianl arrays' do
+      model.update_attributes(grades: [[1, 2], [3, 4]])
+      expect(model.reload.grades).to be == [[1, 2], [3, 4]]
+    end
+  end
+
+  if regular
+
+    it 'raise on non rectangular multidimensianl arrays' do
+      expect{
+        model.update_attributes(grades: [[1, 2], [3, 4, 5]])
+      }.to raise_error(ActiveRecord::StatementInvalid)
+    end
+
+    it 'raise on non nil assignation if column is non nullable' do
+      expect{
+        model.update_attributes(tags: nil)
+      }.to raise_error(ActiveRecord::StatementInvalid)
+    end
+
+  else
+
+    it 'accept non rectangular multidimensianl arrays' do
+      model.update_attributes(grades: [[1, 2], [3, 4, 5]])
+      expect(model.reload.grades).to be == [[1, 2], [3, 4, 5]]
+    end
+
+    it 'retreive default if assigned null' do
+      model.update_attributes(tags: nil)
+      expect(model.reload.tags).to be == []
+    end
+
+  end
+
+end
+
 describe Sqlite3RegularARModel do
   ActiveRecord::Base.establish_connection('test_sqlite3')
   it_should_behave_like 'any model'
@@ -327,19 +394,23 @@ end
 describe PostgresqlRegularARModel do
   it_should_behave_like 'any model'
   it_should_behave_like 'a db backed model'
+  it_should_behave_like 'a model supporting arrays', true if ar_version >= ar_4_0
 end
 
 describe YamlTypedStoreModel do
   it_should_behave_like 'any model'
   it_should_behave_like 'a store'
+  it_should_behave_like 'a model supporting arrays'
 end
 
 describe JsonTypedStoreModel do
   it_should_behave_like 'any model'
   it_should_behave_like 'a store'
+  it_should_behave_like 'a model supporting arrays'
 end
 
 describe MarshalTypedStoreModel do
   it_should_behave_like 'any model'
   it_should_behave_like 'a store'
+  it_should_behave_like 'a model supporting arrays'
 end
