@@ -23,7 +23,7 @@ Or install it yourself as:
 
 ## Usage
 
-It works exactly like [ActiveRecord::Store documentation](http://api.rubyonrails.org/classes/ActiveRecord/Store.html) but you need to declare the type of your attributes.
+It works exactly like [ActiveRecord::Store documentation](http://api.rubyonrails.org/classes/ActiveRecord/Store.html) but you can declare the type of your attributes.
 
 Attributes definition is similar to activerecord's migrations:
 
@@ -35,20 +35,37 @@ class Shop < ActiveRecord::Base
     s.boolean :public, default: false
     s.string :email, null: true
     s.datetime :publish_at, null: true
+    s.integer :age
   end
 
 end
 
+# Values are accessible like normal model attributes
 shop = Shop.new(email: 'george@cyclim.se')
 shop.public?        # => false
 shop.email          # => 'george@cyclim.se'
 shop.published_at   # => nil
+
+# Values are type casted
+shop.update_attributes(
+  age: '42',
+  published_at: '1984-06-08 13:57:12'
+)
+shop.age                # => 42
+shop.published_at.class #= DateTime
+
+# You can still use it as a regular store
+shop.settings[:unknown] = 'Hello World'
+shop.save
+shop.reload
+shop.settings[:unknown] # => 'Hello World'
+
 ```
 
 Type casting rules and attribute behavior are exactly the same as a for real database columns.
 Actually the only difference is that you wont be able to query on these attributes (unless you use Postgres JSON or HStore types) and that you don't need to do a migration to add / remove an attribute.
 
-If not please fill an issue.
+If not, please fill an issue.
 
 ## Contributing
 
