@@ -72,4 +72,5 @@ module ActiveRecord::TypedStore
 
   end
 
+  ActiveRecord::Base.send(:include, AR32Fallbacks)
 end

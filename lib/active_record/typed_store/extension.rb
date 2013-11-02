@@ -13,10 +13,8 @@ module ActiveRecord::TypedStore
     included do
       class_attribute :stored_typed_attributes, instance_accessor: false
       self.stored_typed_attributes = {}
-      if IS_AR_3_2
-        require 'active_record/typed_store/ar_32_fallbacks'
-        include AR32Fallbacks
-      end
+      require 'active_record/typed_store/ar_32_fallbacks' if IS_AR_3_2
+      require 'active_record/typed_store/ar_41_fallbacks' if IS_AR_4_1
     end
 
     module ClassMethods
@@ -28,10 +26,6 @@ module ActiveRecord::TypedStore
 
         stored_typed_attributes[store_attribute] ||= {}
         stored_typed_attributes[store_attribute].merge!(dsl.columns.index_by(&:name))
-
-        if IS_AR_4_1
-          after_initialize { initialize_store_attribute(store_attribute) }
-        end
 
         dsl
       end
