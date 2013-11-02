@@ -33,19 +33,21 @@ end
 
 class CreateAllTables < ActiveRecord::Migration
   def self.up
-    create_table(:regular_ar_models) { |t| define_columns(t) }
-    create_table(:yaml_typed_store_models) { |t| t.text :settings }
-    create_table(:json_typed_store_models) { |t| t.text :settings }
-    create_table(:marshal_typed_store_models) { |t| t.text :settings }
+    create_table(:regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+    create_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
+    create_table(:json_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
+    create_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
   end
 end
 ActiveRecord::Migration.verbose = false
 CreateAllTables.up
 
 class RegularARModel < ActiveRecord::Base
+  store :untyped_settings, accessors: [:title]
 end
 
 class YamlTypedStoreModel < ActiveRecord::Base
+  store :untyped_settings, accessors: [:title]
   typed_store :settings do |s|
     define_columns(s)
   end
@@ -69,12 +71,14 @@ class ColumnCoder
 end
 
 class JsonTypedStoreModel < ActiveRecord::Base
+  store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(JSON) do |s|
     define_columns(s)
   end
 end
 
 class MarshalTypedStoreModel < ActiveRecord::Base
+  store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(Marshal) do |s|
     define_columns(s)
   end

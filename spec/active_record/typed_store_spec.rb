@@ -8,6 +8,15 @@ shared_examples 'any model' do
 
   let(:model) { described_class.new }
 
+  describe 'regular AR::Store' do
+
+    it 'save attributes as usual' do
+      model.update_attributes(title: 'The Big Lebowski')
+      expect(model.reload.title).to be == 'The Big Lebowski'
+    end
+
+  end
+
   describe 'build' do
 
     it 'assign attributes received by #initialize' do
