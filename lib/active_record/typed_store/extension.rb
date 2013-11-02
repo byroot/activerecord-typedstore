@@ -42,7 +42,9 @@ module ActiveRecord::TypedStore
 
       def _ar_32_fallback_accessor(store_attribute, column)
         define_method("#{column.name}_with_type_casting=") do |value|
-          self.send("#{column.name}_without_type_casting=", column.type_cast(value))
+          casted_value = column.type_cast(value)
+          casted_value = column.default if casted_value.nil? && !column.null
+          self.send("#{column.name}_without_type_casting=", casted_value)
         end
         alias_method_chain "#{column.name}=", :type_casting
 
