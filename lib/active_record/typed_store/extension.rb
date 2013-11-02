@@ -13,6 +13,10 @@ module ActiveRecord::TypedStore
     included do
       class_attribute :stored_typed_attributes, instance_accessor: false
       self.stored_typed_attributes = {}
+      if IS_AR_3_2
+        require 'active_record/typed_store/ar_32_fallbacks'
+        extend AR32Fallbacks
+      end
     end
 
     module ClassMethods
@@ -25,36 +29,13 @@ module ActiveRecord::TypedStore
         stored_typed_attributes[store_attribute] ||= {}
         stored_typed_attributes[store_attribute].merge!(dsl.columns.index_by(&:name))
 
-        if IS_AR_4_1 || IS_AR_3_2
+        if IS_AR_4_1
           after_initialize { initialize_store_attribute(store_attribute) }
         end
 
-        _ar_32_fallback_accessors(store_attribute, dsl.columns) if IS_AR_3_2
+        dsl
       end
 
-      protected
-
-      def _ar_32_fallback_accessors(store_attribute, columns)
-        columns.each do |column|
-          _ar_32_fallback_accessor(store_attribute, column)
-        end
-      end
-
-      def _ar_32_fallback_accessor(store_attribute, column)
-        define_method("#{column.name}_with_type_casting=") do |value|
-          casted_value = column.type_cast(value)
-          casted_value = column.default if casted_value.nil? && !column.null
-          self.send("#{column.name}_without_type_casting=", casted_value)
-        end
-        alias_method_chain "#{column.name}=", :type_casting
-
-        define_method(column.name) do
-          send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
-          store = send(store_attribute)
-          store.has_key?(column.name) ? store[column.name] : column.default
-        end
-      end
-      
     end
 
     protected
