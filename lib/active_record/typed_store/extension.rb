@@ -75,17 +75,22 @@ module ActiveRecord::TypedStore
     private
 
     def initialize_store_attribute(store_attribute)
-      attribute = IS_AR_4_0 ? super : send(store_attribute)
+      store = IS_AR_4_0 ? super : send(store_attribute)
       if columns = self.class.stored_typed_attributes[store_attribute]
-        columns.each do |name, definition|
-          if attribute.has_key?(name)
-            attribute[name] = definition.type_cast(attribute[name])
-          else
-            attribute[name] = definition.default if definition.has_default?
-          end
+        store = initialize_store(store, columns)
+      end
+      store
+    end
+
+    def initialize_store(store, columns)
+      columns.each do |name, definition|
+        if store.has_key?(name)
+          store[name] = definition.type_cast(store[name])
+        else
+          store[name] = definition.default if definition.has_default?
         end
       end
-      attribute
+      store
     end
 
   end
