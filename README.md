@@ -32,14 +32,17 @@ Attributes definition is similar to activerecord's migrations:
 class Shop < ActiveRecord::Base
 
   typed_store :settings do |s|
-    s.boolean :public, default: false
-    s.string :email, null: true
-    s.datetime :publish_at, null: true
-    s.integer :age
+    s.boolean :public, default: false, null: false
+    s.string :email
+    s.datetime :publish_at
+    s.integer :age, null: false
     
     # You can define array attributes like in rails 4 and postgres
     s.string :tags, array: true, default: [], null: false
   end
+
+  # You can use any ActiveModel validator
+  validates :age, presence: true
 
 end
 
