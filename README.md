@@ -42,6 +42,9 @@ class Shop < ActiveRecord::Base
 
     # In addition to prevent null values you can prevent blank values
     s.string :title, blank: false, default: 'Title'
+
+    # If you don't want to enforce a datatype but still like to have default handling
+    s.any :source, blank: false, default: 'web'
   end
 
   # You can use any ActiveModel validator

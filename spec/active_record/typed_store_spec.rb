@@ -304,6 +304,23 @@ shared_examples 'a store' do
 
   end
 
+  describe '`any` attributes' do
+
+    it 'accept any type' do
+      model.update_attributes(author: 'George')
+      expect(model.reload.author).to be == 'George'
+
+      model.update_attributes(author: 42)
+      expect(model.reload.author).to be == 42
+    end
+
+    it 'still handle default' do
+      model.update_attributes(source: '')
+      expect(model.reload.source).to be == 'web'
+    end
+
+  end
+
 end
 
 shared_examples 'a db backed model' do

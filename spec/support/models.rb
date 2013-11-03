@@ -38,6 +38,12 @@ def define_columns(t)
   t.string :nickname, blank: false, default: 'Please enter your nickname'
 end
 
+def define_store_columns(t)
+  define_columns(t)
+  t.any :author
+  t.any :source, blank: false, default: 'web'
+end
+
 class CreateAllTables < ActiveRecord::Migration
 
   def self.recreate_table(name, *args, &block)
@@ -81,7 +87,7 @@ class YamlTypedStoreModel < ActiveRecord::Base
   establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings do |s|
-    define_columns(s)
+    define_store_columns(s)
   end
 end
 
@@ -106,7 +112,7 @@ class JsonTypedStoreModel < ActiveRecord::Base
   establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(JSON) do |s|
-    define_columns(s)
+    define_store_columns(s)
   end
 end
 
@@ -114,6 +120,6 @@ class MarshalTypedStoreModel < ActiveRecord::Base
   establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(Marshal) do |s|
-    define_columns(s)
+    define_store_columns(s)
   end
 end
