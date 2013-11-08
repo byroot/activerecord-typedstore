@@ -91,6 +91,10 @@ shared_examples 'any model' do
       expect(model.name).to be == ''
     end
 
+    it 'default to nil if specified explicitly' do
+      expect(model.cell_phone).to be_nil
+    end
+
     it 'properly cast the value as string' do
       model.update_attributes(name: 42)
       expect(model.reload.name).to be == '42'

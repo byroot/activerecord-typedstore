@@ -13,6 +13,7 @@ def define_columns(t)
 
   t.string :name, default: '', null: false
   t.string :email
+  t.string :cell_phone, default: nil
 
   t.boolean :public, default: false, null: false
   t.boolean :enabled, default: true

@@ -22,6 +22,11 @@ module ActiveRecord::TypedStore
       casted_value
     end
 
+    def extract_default(value)
+      return value if (type == :string || type == :text) && value.nil?
+      super
+    end
+
     def type_cast(value, map=true)
       if array && (map || value.is_a?(Array))
         return [] if map && !value.is_a?(Array)
