@@ -66,6 +66,12 @@ shop.update_attributes(
 shop.age                # => 42
 shop.published_at.class #= DateTime
 
+# And changes are tracked
+shop.age_changed? # => false
+shop.age = 12
+shop.age_changed? # => true
+shop.age_was      # => 42
+
 # You can still use it as a regular store
 shop.settings[:unknown] = 'Hello World'
 shop.save
