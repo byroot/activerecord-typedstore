@@ -3,6 +3,11 @@ module ActiveRecord::TypedStore
   module AR32Fallbacks
     extend ActiveSupport::Concern
 
+    included do
+      cattr_accessor :virtual_attribute_methods
+      self.virtual_attribute_methods = []
+    end
+
     module ClassMethods
 
       def typed_store(store_attribute, options={}, &block)
@@ -11,6 +16,24 @@ module ActiveRecord::TypedStore
       end
 
       protected
+
+      def define_virtual_attribute_method(name)
+        virtual_attribute_methods << name
+        define_attribute_method(name)
+      end
+
+      # ActiveModel override heavilly inspired from the original code
+      def define_attribute_method(attr_name)
+        return super unless virtual_attribute_methods.include?(attr_name)
+
+        attribute_method_matchers.each do |matcher|
+          method_name = matcher.method_name(attr_name)
+          unless instance_method_already_implemented?(method_name)
+            define_optimized_call generated_attribute_methods, method_name, matcher.method_missing_target, attr_name.to_s
+          end
+        end
+        attribute_method_matchers_cache.clear
+      end
 
       def _ar_32_fallback_accessors(store_attribute, columns)
         _ar_32_fallback_initializer(store_attribute, columns)
@@ -39,7 +62,9 @@ module ActiveRecord::TypedStore
 
       def _ar_32_fallback_writer(store_attribute, column)
         define_method("#{column.name}_with_type_casting=") do |value|
-          self.send("#{column.name}_without_type_casting=", column.cast(value))
+          casted_value = column.cast(value)
+          attribute_will_change!(column.name.to_s) if casted_value != send(column.name)
+          send("#{column.name}_without_type_casting=", casted_value)
         end
         alias_method_chain "#{column.name}=", :type_casting
       end

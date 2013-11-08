@@ -1,13 +1,15 @@
 require 'active_record/typed_store/column'
 require 'active_record/typed_store/dsl'
 
-ActiveModel::AttributeMethods::ClassMethods.send(:alias_method, :active_model_define_attribute_method, :define_attribute_method)
-
 module ActiveRecord::TypedStore
   AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
   IS_AR_3_2 = AR_VERSION < Gem::Version.new('4.0')
   IS_AR_4_0 = AR_VERSION >= Gem::Version.new('4.0') && AR_VERSION < Gem::Version.new('4.1.0.beta')
   IS_AR_4_1 = AR_VERSION >= Gem::Version.new('4.1.0.beta')
+
+  unless IS_AR_3_2
+    ActiveModel::AttributeMethods::ClassMethods.send(:alias_method, :define_virtual_attribute_method, :define_attribute_method)
+  end
 
   module Extension
     extend ActiveSupport::Concern
@@ -29,7 +31,7 @@ module ActiveRecord::TypedStore
         stored_typed_attributes[store_attribute] ||= {}
         stored_typed_attributes[store_attribute].merge!(dsl.columns.index_by(&:name))
 
-        dsl.column_names.each { |c| active_model_define_attribute_method(c.to_s) }
+        dsl.column_names.each { |c| define_virtual_attribute_method(c.to_s) }
 
         dsl
       end
