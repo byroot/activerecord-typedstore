@@ -26,6 +26,19 @@ shared_examples 'any model' do
 
   end
 
+  describe 'attribute presence' do
+
+    it 'return true if present' do
+      expect(model.age?).to be_true
+    end
+
+    it 'return false if blank' do
+      model.age = 0
+      expect(model.age?).to be_false
+    end
+
+  end
+
   describe 'dirty tracking' do
 
     it 'track changed attributes' do

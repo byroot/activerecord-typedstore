@@ -56,25 +56,11 @@ module ActiveRecord::TypedStore
       end
 
       def _ar_32_fallback_accessor(store_attribute, column)
-        _ar_32_fallback_writer(store_attribute, column)
-        _ar_32_fallback_reader(store_attribute, column)
-      end
-
-      def _ar_32_fallback_writer(store_attribute, column)
-        define_method("#{column.name}_with_type_casting=") do |value|
-          casted_value = column.cast(value)
-          attribute_will_change!(column.name.to_s) if casted_value != send(column.name)
-          send("#{column.name}_without_type_casting=", casted_value)
+        define_method("#{column.name}=") do |value|
+          write_store_attribute(store_attribute, column.name, value)
         end
-        alias_method_chain "#{column.name}=", :type_casting
-      end
-
-      def _ar_32_fallback_reader(store_attribute, column)
         define_method(column.name) do
-          send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
-          store = send(store_attribute)
-
-          store.has_key?(column.name) ? store[column.name] : column.default
+          read_store_attribute(store_attribute, column.name)
         end
       end
 
@@ -86,6 +72,37 @@ module ActiveRecord::TypedStore
     end
 
     private
+
+    def read_store_attribute(store_attribute, key)
+      send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
+      store = send(store_attribute)
+      if store.has_key?(key)
+        store[key]
+      elsif column = store_column_definition(store_attribute, key)
+        column.default
+      end
+    end
+
+    def write_store_attribute(store_attribute, key, value)
+      previous_value = read_store_attribute(store_attribute, key)
+      casted_value = value
+
+      if column = store_column_definition(store_attribute, key)
+        casted_value = column.cast(value)
+      end
+
+      if casted_value != previous_value
+        attribute_will_change!(key.to_s) 
+        attribute_will_change!(store_attribute.to_s)
+      end
+
+      send(store_attribute)[key] = casted_value
+    end
+
+    def store_column_definition(store_attribute, key)
+      store_definition = self.class.stored_typed_attributes[store_attribute]
+      store_definition && store_definition[key]
+    end
 
     def _ar_32_reload_stores!
       self.class.stored_typed_attributes.keys.each do |store_attribute|

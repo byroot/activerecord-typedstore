@@ -32,8 +32,17 @@ module ActiveRecord::TypedStore
         stored_typed_attributes[store_attribute].merge!(dsl.columns.index_by(&:name))
 
         dsl.column_names.each { |c| define_virtual_attribute_method(c.to_s) }
+        dsl.column_names.each { |c| define_store_attribute_queries(store_attribute, c) }
 
         dsl
+      end
+
+      private
+
+      def define_store_attribute_queries(store_attribute, column_name)
+        define_method("#{column_name}?") do
+          query_store_attribute(store_attribute, column_name)
+        end
       end
 
     end
@@ -71,6 +80,30 @@ module ActiveRecord::TypedStore
         end
       end
       store
+    end
+
+    def query_store_attribute(store_attribute, key)
+      value = read_store_attribute(store_attribute, key)
+
+      case value
+      when true        then true
+      when false, nil  then false
+      else
+        store = self.class.stored_typed_attributes[store_attribute]
+        column = store && store[key]
+        if column.nil?
+          if Numeric === value || value !~ /[^0-9]/
+            !value.to_i.zero?
+          else
+            return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
+            !value.blank?
+          end
+        elsif column.number?
+          !value.zero?
+        else
+          !value.blank?
+        end
+      end
     end
 
   end
