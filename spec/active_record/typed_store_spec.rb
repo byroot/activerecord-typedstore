@@ -26,6 +26,41 @@ shared_examples 'any model' do
 
   end
 
+  describe 'dirty tracking' do
+
+    it 'track changed attributes' do
+      expect {
+        model.age = 24
+      }.to change { model.age_changed? }.from(false).to(true)
+    end
+
+    it 'keep track of what the attribute was' do
+      model.age = 24
+      expect(model.age_was).to be == 12
+    end
+
+    it 'keep track of the whole changes' do
+      expect {
+        model.age = 24
+      }.to change { model.changes['age'] }.from(nil).to([12, 24])
+    end
+
+    it 'reset recorded changes after successful save' do
+      model.age = 24
+      expect {
+        model.save
+      }.to change { model.age_changed? }.from(true).to(false)
+    end
+
+    it 'can be reset individually' do
+      model.age = 24
+      expect {
+        model.reset_age!
+      }.to change { model.age }.from(24).to(12)
+    end
+
+  end
+
   describe 'unknown attribute' do
 
     it 'raise an ActiveRecord::UnknownAttributeError on save attemps' do
