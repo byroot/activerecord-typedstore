@@ -23,13 +23,13 @@ module ActiveRecord::TypedStore
 
       protected
 
-      def prepare_with_initialization(object, attribute)
-        prepare_without_initialization(object, attribute)
+      def prepare_with_initialization(object, store_attribute)
+        prepare_without_initialization(object, store_attribute)
 
-        initialized = "@_#{attribute}_initialized"
+        initialized = "@_#{store_attribute}_initialized"
         unless object.instance_variable_get(initialized)
-          store = object.send(:initialize_store_attribute, attribute)
-          object.send("#{attribute}=", store)
+          store = object.send(:initialize_store_attribute, store_attribute)
+          object.send("#{store_attribute}=", store)
           object.instance_variable_set(initialized, true)
         end
 
