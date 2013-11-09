@@ -112,8 +112,7 @@ module ActiveRecord::TypedStore
       when true        then true
       when false, nil  then false
       else
-        store = self.class.stored_typed_attributes[store_attribute]
-        column = store && store[key]
+        column = store_column_definition(store_attribute, key)
         if column.nil?
           if Numeric === value || value !~ /[^0-9]/
             !value.to_i.zero?
