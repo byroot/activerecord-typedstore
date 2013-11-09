@@ -10,9 +10,9 @@ module ActiveRecord::TypedStore
 
     module ClassMethods
 
-      def typed_store(store_attribute, options={}, &block)
+      def typed_store(store_attribute, *)
         dsl = super
-        _ar_32_fallback_accessors(store_attribute, dsl.columns)
+        _ar_32_fallback_accessors(store_attribute, dsl.column_names)
       end
 
       protected
@@ -35,18 +35,18 @@ module ActiveRecord::TypedStore
         attribute_method_matchers_cache.clear
       end
 
-      def _ar_32_fallback_accessors(store_attribute, columns)
-        columns.each do |column|
-          _ar_32_fallback_accessor(store_attribute, column)
+      def _ar_32_fallback_accessors(store_attribute, column_names)
+        column_names.each do |name|
+          _ar_32_fallback_accessor(store_attribute, name)
         end
       end
 
-      def _ar_32_fallback_accessor(store_attribute, column)
-        define_method("#{column.name}=") do |value|
-          write_store_attribute(store_attribute, column.name, value)
+      def _ar_32_fallback_accessor(store_attribute, key)
+        define_method("#{key}=") do |value|
+          write_store_attribute(store_attribute, key, value)
         end
-        define_method(column.name) do
-          read_store_attribute(store_attribute, column.name)
+        define_method(key) do
+          read_store_attribute(store_attribute, key)
         end
       end
 
