@@ -455,7 +455,6 @@ shared_examples 'a model supporting arrays' do |regular=false|
 end
 
 describe Sqlite3RegularARModel do
-  ActiveRecord::Base.establish_connection('test_sqlite3')
   it_should_behave_like 'any model'
   it_should_behave_like 'a db backed model'
 end
