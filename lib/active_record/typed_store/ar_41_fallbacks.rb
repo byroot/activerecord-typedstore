@@ -23,5 +23,4 @@ module ActiveRecord::TypedStore
     ActiveRecord::Store::IndifferentHashAccessor.extend(HashAccessorPatch)
   end
 
-  ActiveRecord::Base.send(:include, AR41Fallbacks)
 end

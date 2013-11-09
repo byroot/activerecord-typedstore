@@ -4,12 +4,7 @@ require 'active_record/typed_store/dsl'
 module ActiveRecord::TypedStore
   AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
   IS_AR_3_2 = AR_VERSION < Gem::Version.new('4.0')
-  IS_AR_4_0 = AR_VERSION >= Gem::Version.new('4.0') && AR_VERSION < Gem::Version.new('4.1.0.beta')
   IS_AR_4_1 = AR_VERSION >= Gem::Version.new('4.1.0.beta')
-
-  unless IS_AR_3_2
-    ActiveModel::AttributeMethods::ClassMethods.send(:alias_method, :define_virtual_attribute_method, :define_attribute_method)
-  end
 
   module Extension
     extend ActiveSupport::Concern
@@ -17,8 +12,6 @@ module ActiveRecord::TypedStore
     included do
       class_attribute :stored_typed_attributes, instance_accessor: false
       self.stored_typed_attributes = {}
-      require 'active_record/typed_store/ar_32_fallbacks' if IS_AR_3_2
-      require 'active_record/typed_store/ar_41_fallbacks' if IS_AR_4_1
     end
 
     module ClassMethods
@@ -33,6 +26,8 @@ module ActiveRecord::TypedStore
 
         dsl.column_names.each { |c| define_virtual_attribute_method(c.to_s) }
         dsl.column_names.each { |c| define_store_attribute_queries(store_attribute, c) }
+
+        super(store_attribute, dsl) if defined?(super)
 
         dsl
       end
@@ -89,12 +84,13 @@ module ActiveRecord::TypedStore
 
     def initialize_store_attribute(store_attribute)
       store = defined?(super) ? super : send(store_attribute)
-      if_store_uninitialized(store_attribute) do
-        if columns = self.class.stored_typed_attributes[store_attribute]
-          initialize_store(store, columns.values)
+      store.tap do |store|
+        if_store_uninitialized(store_attribute) do
+          if columns = self.class.stored_typed_attributes[store_attribute]
+            initialize_store(store, columns.values)
+          end
         end
       end
-      store
     end
 
     def initialize_store(store, columns)
@@ -134,4 +130,11 @@ module ActiveRecord::TypedStore
     end
 
   end
+
+  require 'active_record/typed_store/ar_32_fallbacks' if IS_AR_3_2
+  require 'active_record/typed_store/ar_41_fallbacks' if IS_AR_4_1
+  unless IS_AR_3_2
+    ActiveModel::AttributeMethods::ClassMethods.send(:alias_method, :define_virtual_attribute_method, :define_attribute_method)
+  end
+
 end

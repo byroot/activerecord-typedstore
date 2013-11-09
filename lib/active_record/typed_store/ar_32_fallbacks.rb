@@ -10,8 +10,7 @@ module ActiveRecord::TypedStore
 
     module ClassMethods
 
-      def typed_store(store_attribute, *)
-        dsl = super
+      def typed_store(store_attribute, dsl)
         _ar_32_fallback_accessors(store_attribute, dsl.column_names)
       end
 
@@ -56,7 +55,7 @@ module ActiveRecord::TypedStore
 
     def initialize_store_attribute(store_attribute)
       send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
-      super
+      send(store_attribute)
     end
 
     def read_store_attribute(store_attribute, key)
@@ -65,18 +64,11 @@ module ActiveRecord::TypedStore
     end
 
     def write_store_attribute(store_attribute, key, value)
-      previous_value = read_store_attribute(store_attribute, key)
-      casted_value = cast_store_attribute(store_attribute, key, value)
-
-      if casted_value != previous_value
-        attribute_will_change!(key.to_s)
-        attribute_will_change!(store_attribute.to_s)
-      end
-
-      send(store_attribute)[key] = casted_value
+      attribute_will_change!(store_attribute.to_s)
+      send(store_attribute)[key] = value
     end
 
   end
 
-  ActiveRecord::Base.send(:include, AR32Fallbacks)
+  Extension.send(:include, AR32Fallbacks)
 end
