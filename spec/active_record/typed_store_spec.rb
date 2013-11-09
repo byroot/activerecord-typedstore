@@ -26,19 +26,6 @@ shared_examples 'any model' do
 
   end
 
-  describe 'attribute presence' do
-
-    it 'return true if present' do
-      expect(model.age?).to be_true
-    end
-
-    it 'return false if blank' do
-      model.age = 0
-      expect(model.age?).to be_false
-    end
-
-  end
-
   describe 'dirty tracking' do
 
     it 'track changed attributes' do
@@ -113,6 +100,19 @@ shared_examples 'any model' do
       expect(model.reload.name).to be == '42'
     end
 
+    it 'any string is considered present' do
+      model.name = 'Peter Gibbons'
+      expect(model.name?).to be_true
+    end
+
+    it 'empty string is not considered present' do
+      expect(model.name?).to be_false
+    end
+
+    it 'nil is not considered present' do
+      expect(model.cell_phone?).to be_false
+    end
+
   end
 
   describe 'boolean attribute' do
@@ -162,6 +162,19 @@ shared_examples 'any model' do
       expect(model.reload.enabled).to be_true
     end
 
+    it 'true is considered present' do
+      expect(model.enabled?).to be_true
+    end
+
+    it 'false is not considered present' do
+      expect(model.public?).to be_false
+    end
+
+    it 'nil is not considered present' do
+      model.update_attributes(enabled: nil)
+      expect(model.enabled?).to be_false
+    end
+
   end
 
   describe 'integer attributes' do
@@ -185,6 +198,25 @@ shared_examples 'any model' do
       expect(model.reload.max_length).to be_nil
     end
 
+    it 'positive values are considered present' do
+      expect(model.age?).to be_true
+    end
+
+    it 'negative values are considered present' do
+      model.age = -42
+      expect(model.age?).to be_true
+    end
+
+    it '0 is not considered present' do
+      model.age = 0
+      expect(model.age?).to be_false
+    end
+
+    it 'nil is not considered present' do
+      model.max_length = nil
+      expect(model.max_length?).to be_false
+    end
+
   end
 
   describe 'float attributes' do
@@ -206,6 +238,24 @@ shared_examples 'any model' do
     it 'can store nil if the column is nullable' do
       model.update_attributes(price: nil)
       expect(model.reload.price).to be_nil
+    end
+
+    it 'positive values are considered present' do
+      model.rate = 4.2
+      expect(model.rate?).to be_true
+    end
+
+    it 'negative values are considered present' do
+      model.rate = -4.2
+      expect(model.rate?).to be_true
+    end
+
+    it '0 is not considered present' do
+      expect(model.rate?).to be_false
+    end
+
+    it 'nil is not considered present' do
+      expect(model.price?).to be_false
     end
 
   end
@@ -240,6 +290,25 @@ shared_examples 'any model' do
       expect(model.reload.shipping_cost).to be_nil
     end
 
+    it 'positive values are considered present' do
+      model.shipping_cost = BigDecimal.new('4.2')
+      expect(model.shipping_cost?).to be_true
+    end
+
+    it 'negative values are considered present' do
+      model.shipping_cost = BigDecimal.new('-4.2')
+      expect(model.shipping_cost?).to be_true
+    end
+
+    it '0 is not considered present' do
+      model.shipping_cost = BigDecimal.new('0')
+      expect(model.shipping_cost?).to be_false
+    end
+
+    it 'nil is not considered present' do
+      expect(model.shipping_cost?).to be_false
+    end
+
   end
 
   describe 'date attributes' do
@@ -268,6 +337,15 @@ shared_examples 'any model' do
     it 'can store nil if the column is nullable' do
       model.update_attributes(remind_on: nil)
       expect(model.reload.remind_on).to be_nil
+    end
+
+    it 'any non-nil value is considered present' do
+      model.remind_on = Date.new
+      expect(model.remind_on?).to be_true
+    end
+
+    it 'nil is not considered present' do
+      expect(model.remind_on?).to be_false
     end
 
   end
@@ -332,6 +410,15 @@ shared_examples 'any model' do
     it 'can store nil if the column is nullable' do
       model.update_attributes(remind_at: nil)
       expect(model.reload.remind_at).to be_nil
+    end
+
+    it 'any non-nil value is considered present' do
+      model.remind_at = DateTime.new
+      expect(model.remind_at?).to be_true
+    end
+
+    it 'nil is not considered present' do
+      expect(model.remind_at?).to be_false
     end
 
   end
