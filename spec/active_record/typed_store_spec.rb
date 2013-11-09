@@ -342,6 +342,33 @@ shared_examples 'a store' do
 
   let(:model) { described_class.new }
 
+  describe 'initialization' do
+
+    it 'is done only once' do
+      model.should_receive(:initialize_store).once
+      3.times do
+        model.age = (rand * 100).to_i
+        model.age
+      end
+    end
+
+    it 'is done again after a reload' do
+      model.save
+
+      model.should_receive(:initialize_store).twice
+      3.times do
+        model.age = (rand * 100).to_i
+        model.age
+      end
+      model.reload
+      3.times do
+        model.age = (rand * 100).to_i
+        model.age
+      end
+    end
+
+  end
+
   describe 'attributes' do
 
     it 'retrieve default if assigned nil and null not allowed' do
