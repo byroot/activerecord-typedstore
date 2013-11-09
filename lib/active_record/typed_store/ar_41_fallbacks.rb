@@ -2,18 +2,7 @@ module ActiveRecord::TypedStore
 
   module AR41Fallbacks
 
-    def reload(*)
-      _ar_41_reload_stores!
-      super
-    end
-
     private
-
-    def _ar_41_reload_stores!
-      self.class.stored_typed_attributes.keys.each do |store_attribute|
-        instance_variable_set("@_#{store_attribute}_initialized", false)
-      end
-    end
 
     module HashAccessorPatch
 
@@ -25,14 +14,7 @@ module ActiveRecord::TypedStore
 
       def prepare_with_initialization(object, store_attribute)
         prepare_without_initialization(object, store_attribute)
-
-        initialized = "@_#{store_attribute}_initialized"
-        unless object.instance_variable_get(initialized)
-          store = object.send(:initialize_store_attribute, store_attribute)
-          object.send("#{store_attribute}=", store)
-          object.instance_variable_set(initialized, true)
-        end
-
+        object.send(:initialize_store_attribute, store_attribute)
       end
 
     end

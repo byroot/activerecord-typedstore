@@ -36,22 +36,8 @@ module ActiveRecord::TypedStore
       end
 
       def _ar_32_fallback_accessors(store_attribute, columns)
-        _ar_32_fallback_initializer(store_attribute, columns)
         columns.each do |column|
           _ar_32_fallback_accessor(store_attribute, column)
-        end
-      end
-
-      def _ar_32_fallback_initializer(store_attribute, columns)
-        define_method(store_attribute) do
-          initialized = "@_#{store_attribute}_initialized"
-          unless instance_variable_get(initialized)
-            store = read_attribute(store_attribute)
-            store = initialize_store(store, columns)
-            write_attribute(store_attribute, store)
-            instance_variable_set(initialized, true)
-          end
-          read_attribute(store_attribute)
         end
       end
 
@@ -66,48 +52,28 @@ module ActiveRecord::TypedStore
 
     end
 
-    def reload(*)
-      _ar_32_reload_stores!
+    private
+
+    def initialize_store_attribute(store_attribute)
+      send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
       super
     end
 
-    private
-
     def read_store_attribute(store_attribute, key)
-      send("#{store_attribute}=", {}) unless send(store_attribute).is_a?(Hash)
-      store = send(store_attribute)
-      if store.has_key?(key)
-        store[key]
-      elsif column = store_column_definition(store_attribute, key)
-        column.default
-      end
+      store = initialize_store_attribute(store_attribute)
+      store[key]
     end
 
     def write_store_attribute(store_attribute, key, value)
       previous_value = read_store_attribute(store_attribute, key)
-      casted_value = value
-
-      if column = store_column_definition(store_attribute, key)
-        casted_value = column.cast(value)
-      end
+      casted_value = cast_store_attribute(store_attribute, key, value)
 
       if casted_value != previous_value
-        attribute_will_change!(key.to_s) 
+        attribute_will_change!(key.to_s)
         attribute_will_change!(store_attribute.to_s)
       end
 
       send(store_attribute)[key] = casted_value
-    end
-
-    def store_column_definition(store_attribute, key)
-      store_definition = self.class.stored_typed_attributes[store_attribute]
-      store_definition && store_definition[key]
-    end
-
-    def _ar_32_reload_stores!
-      self.class.stored_typed_attributes.keys.each do |store_attribute|
-        instance_variable_set("@_#{store_attribute}_initialized", false)
-      end
     end
 
   end

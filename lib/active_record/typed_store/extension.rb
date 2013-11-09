@@ -47,26 +47,52 @@ module ActiveRecord::TypedStore
 
     end
 
+    def reload(*)
+      reload_stores!
+      super
+    end
+
     protected
 
     def write_store_attribute(store_attribute, key, value)
-      casted_value = value
-      if store_definition = self.class.stored_typed_attributes[store_attribute]
-        if column_definition = store_definition[key]
-          casted_value = column_definition.cast(value)
-        end
-      end
-
-      attribute_will_change!(key.to_s) if casted_value != read_store_attribute(store_attribute, key)
+      previous_value = read_store_attribute(store_attribute, key)
+      casted_value = cast_store_attribute(store_attribute, key, value)
+      attribute_will_change!(key.to_s) if casted_value != previous_value
       super(store_attribute, key, casted_value)
     end
 
     private
 
+    def cast_store_attribute(store_attribute, key, value)
+      column = store_column_definition(store_attribute, key)
+      column ? column.cast(value) : value
+    end
+
+    def store_column_definition(store_attribute, key)
+      store_definition = self.class.stored_typed_attributes[store_attribute]
+      store_definition && store_definition[key]
+    end
+
+    def if_store_uninitialized(store_attribute)
+      initialized = "@_#{store_attribute}_initialized"
+      unless instance_variable_get(initialized)
+        yield
+        instance_variable_set(initialized, true)
+      end
+    end
+
+    def reload_stores!
+      self.class.stored_typed_attributes.keys.each do |store_attribute|
+        instance_variable_set("@_#{store_attribute}_initialized", false)
+      end
+    end
+
     def initialize_store_attribute(store_attribute)
-      store = IS_AR_4_0 ? super : send(store_attribute)
-      if columns = self.class.stored_typed_attributes[store_attribute]
-        store = initialize_store(store, columns.values)
+      store = defined?(super) ? super : send(store_attribute)
+      if_store_uninitialized(store_attribute) do
+        if columns = self.class.stored_typed_attributes[store_attribute]
+          initialize_store(store, columns.values)
+        end
       end
       store
     end
@@ -82,6 +108,7 @@ module ActiveRecord::TypedStore
       store
     end
 
+    # heavilly inspired from ActiveRecord::Base#query_attribute
     def query_store_attribute(store_attribute, key)
       value = read_store_attribute(store_attribute, key)
 
