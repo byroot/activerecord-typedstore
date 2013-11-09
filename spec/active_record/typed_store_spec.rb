@@ -367,6 +367,12 @@ shared_examples 'a store' do
       end
     end
 
+    it 'is not performe if no store attributes are accessed' do
+      model.should_not_receive(:initialize_store)
+      model.update_attributes(untyped_settings: {foo: :bar})
+      model.update_attributes(untyped_settings: {})
+    end
+
   end
 
   describe 'attributes' do
