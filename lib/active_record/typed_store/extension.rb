@@ -113,14 +113,8 @@ module ActiveRecord::TypedStore
       when false, nil  then false
       else
         column = store_column_definition(store_attribute, key)
-        if column.nil?
-          if Numeric === value || value !~ /[^0-9]/
-            !value.to_i.zero?
-          else
-            return false if ActiveRecord::ConnectionAdapters::Column::FALSE_VALUES.include?(value)
-            !value.blank?
-          end
-        elsif column.number?
+
+        if column.number?
           !value.zero?
         else
           !value.blank?
