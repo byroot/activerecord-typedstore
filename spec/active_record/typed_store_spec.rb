@@ -1,9 +1,5 @@
 require 'spec_helper'
 
-ar_version = Gem::Version.new(ActiveRecord::VERSION::STRING)
-ar_4_0 = Gem::Version.new('4.0')
-ar_4_1 = Gem::Version.new('4.1.0.beta')
-
 shared_examples 'any model' do
 
   let(:model) { described_class.new }
@@ -358,7 +354,7 @@ shared_examples 'any model' do
 
     context "with ActiveRecord #{ActiveRecord::VERSION::STRING}" do
 
-      if ar_version < ar_4_0
+      if AR_VERSION < AR_4_0
 
         it 'has the defined default as initial value' do
           model.save
@@ -537,7 +533,7 @@ shared_examples 'a model supporting arrays' do |regular=false|
     expect(model.reload.grades).to be == []
   end
 
-  if !regular || ar_version == ar_4_1
+  if !regular || AR_VERSION == AR_4_1
     it 'accept multidimensianl arrays' do
       model.update_attributes(grades: [[1, 2], [3, 4]])
       expect(model.reload.grades).to be == [[1, 2], [3, 4]]
@@ -595,8 +591,20 @@ end
     describe PostgresqlRegularARModel do
       it_should_behave_like 'any model'
       it_should_behave_like 'a db backed model'
-      it_should_behave_like 'a model supporting arrays', true if ar_version >= ar_4_0
+      it_should_behave_like 'a model supporting arrays', true if AR_VERSION >= AR_4_0
     end if defined?(PostgresqlRegularARModel)
+
+    # describe PostgresHstoreTypedStoreModel do
+    #   it_should_behave_like 'any model'
+    #   it_should_behave_like 'a store'
+    #   #it_should_behave_like 'a model supporting arrays'
+    # end if defined?(PostgresHstoreTypedStoreModel)
+
+    describe PostgresJsonTypedStoreModel do
+      it_should_behave_like 'any model'
+      it_should_behave_like 'a store'
+      it_should_behave_like 'a model supporting arrays'
+    end if defined?(PostgresJsonTypedStoreModel)
 
     describe YamlTypedStoreModel do
       it_should_behave_like 'any model'

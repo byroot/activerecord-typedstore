@@ -2,6 +2,11 @@ require 'active_record'
 require 'json'
 require 'yaml'
 
+AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
+AR_4_0 = Gem::Version.new('4.0')
+AR_4_1 = Gem::Version.new('4.1.0.beta')
+
+
 ActiveRecord::Base.configurations = {
   'test_sqlite3' => {adapter: 'sqlite3', database: "/tmp/typed_store.db"},
   'test_postgresql' => {adapter: 'postgresql', database: 'typed_store_test', username: 'postgres'},
@@ -61,6 +66,14 @@ class CreateAllTables < ActiveRecord::Migration
     if ENV['POSTGRES']
       ActiveRecord::Base.establish_connection('test_postgresql')
       recreate_table(:postgresql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+
+      if AR_VERSION >= AR_4_0
+        execute "create extension if not exists hstore"
+        recreate_table(:postgres_hstore_typed_store_models) { |t| t.hstore :settings; t.text :untyped_settings }
+
+        #execute "create extension if not exists json"
+        recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :untyped_settings }
+      end
     end
 
     ActiveRecord::Base.establish_connection('test_sqlite3')
@@ -72,38 +85,6 @@ class CreateAllTables < ActiveRecord::Migration
 end
 ActiveRecord::Migration.verbose = false
 CreateAllTables.up
-
-
-if ENV['MYSQL']
-  class MysqlRegularARModel < ActiveRecord::Base
-    self.time_zone_aware_attributes = true
-    establish_connection 'test_mysql'
-    store :untyped_settings, accessors: [:title]
-  end
-end
-
-if ENV['POSTGRES']
-  class PostgresqlRegularARModel < ActiveRecord::Base
-    self.time_zone_aware_attributes = true
-    establish_connection 'test_postgresql'
-    store :untyped_settings, accessors: [:title]
-  end
-end
-
-class Sqlite3RegularARModel < ActiveRecord::Base
-  self.time_zone_aware_attributes = true
-  establish_connection 'test_sqlite3'
-  store :untyped_settings, accessors: [:title]
-end
-
-class YamlTypedStoreModel < ActiveRecord::Base
-  self.time_zone_aware_attributes = true
-  establish_connection 'test_sqlite3'
-  store :untyped_settings, accessors: [:title]
-  typed_store :settings do |s|
-    define_store_columns(s)
-  end
-end
 
 class ColumnCoder
 
@@ -122,8 +103,67 @@ class ColumnCoder
 
 end
 
+module AsJson
+  extend self
+
+  def load(value)
+    value
+  end
+
+  def dump(value)
+    value.as_json
+  end
+
+end
+
+if ENV['MYSQL']
+  class MysqlRegularARModel < ActiveRecord::Base
+    establish_connection 'test_mysql'
+    store :untyped_settings, accessors: [:title]
+  end
+end
+
+if ENV['POSTGRES']
+  class PostgresqlRegularARModel < ActiveRecord::Base
+    establish_connection 'test_postgresql'
+    store :untyped_settings, accessors: [:title]
+  end
+
+  if AR_VERSION >= AR_4_0
+
+    class PostgresHstoreTypedStoreModel < ActiveRecord::Base
+      establish_connection 'test_postgresql'
+      store :untyped_settings, accessors: [:title]
+      typed_store :settings do |s|
+        define_store_columns(s)
+      end
+    end
+
+    class PostgresJsonTypedStoreModel < ActiveRecord::Base
+      establish_connection 'test_postgresql'
+      store :untyped_settings, accessors: [:title]
+      typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
+        define_store_columns(s)
+      end
+    end
+
+  end
+end
+
+class Sqlite3RegularARModel < ActiveRecord::Base
+  establish_connection 'test_sqlite3'
+  store :untyped_settings, accessors: [:title]
+end
+
+class YamlTypedStoreModel < ActiveRecord::Base
+  establish_connection 'test_sqlite3'
+  store :untyped_settings, accessors: [:title]
+  typed_store :settings do |s|
+    define_store_columns(s)
+  end
+end
+
 class JsonTypedStoreModel < ActiveRecord::Base
-  self.time_zone_aware_attributes = true
   establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(JSON) do |s|
@@ -132,7 +172,6 @@ class JsonTypedStoreModel < ActiveRecord::Base
 end
 
 class MarshalTypedStoreModel < ActiveRecord::Base
-  self.time_zone_aware_attributes = true
   establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(Marshal) do |s|
@@ -149,3 +188,5 @@ Models = [
 ]
 Models << MysqlRegularARModel if defined?(MysqlRegularARModel)
 Models << PostgresqlRegularARModel if defined?(PostgresqlRegularARModel)
+Models << PostgresHstoreTypedStoreModel if defined?(PostgresHstoreTypedStoreModel)
+Models << PostgresJsonTypedStoreModel if defined?(PostgresJsonTypedStoreModel)
