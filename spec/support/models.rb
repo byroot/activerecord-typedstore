@@ -64,7 +64,7 @@ class CreateAllTables < ActiveRecord::Migration
     end
 
     if ENV['POSTGRES']
-      ActiveRecord::Base.establish_connection('test_postgresql')
+      ActiveRecord::Base.establish_connection(ENV['POSTGRES_URL'] || 'test_postgresql')
       recreate_table(:postgresql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
 
       if AR_VERSION >= AR_4_0
@@ -125,14 +125,14 @@ end
 
 if ENV['POSTGRES']
   class PostgresqlRegularARModel < ActiveRecord::Base
-    establish_connection 'test_postgresql'
+    establish_connection ENV['POSTGRES_URL'] || 'test_postgresql'
     store :untyped_settings, accessors: [:title]
   end
 
   if AR_VERSION >= AR_4_0
 
     class PostgresHstoreTypedStoreModel < ActiveRecord::Base
-      establish_connection 'test_postgresql'
+      establish_connection ENV['POSTGRES_URL'] || 'test_postgresql'
       store :untyped_settings, accessors: [:title]
       typed_store :settings do |s|
         define_store_columns(s)
@@ -140,7 +140,7 @@ if ENV['POSTGRES']
     end
 
     class PostgresJsonTypedStoreModel < ActiveRecord::Base
-      establish_connection 'test_postgresql'
+      establish_connection ENV['POSTGRES_URL'] || 'test_postgresql'
       store :untyped_settings, accessors: [:title]
       typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
         define_store_columns(s)
