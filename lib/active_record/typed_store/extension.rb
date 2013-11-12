@@ -21,7 +21,11 @@ module ActiveRecord::TypedStore
       def typed_store(store_attribute, options={}, &block)
         dsl = DSL.new(&block)
 
-        store(store_attribute, options.merge(accessors: dsl.column_names))
+        if hstore?(store_attribute)
+          store_accessor(store_attribute, dsl.column_names)
+        else
+          store(store_attribute, options.merge(accessors: dsl.column_names))
+        end
 
         typed_stores[store_attribute] ||= {}
         typed_stores[store_attribute].merge!(dsl.columns.index_by(&:name))
@@ -36,6 +40,10 @@ module ActiveRecord::TypedStore
       end
 
       private
+
+      def hstore?(store_attribute)
+        columns_hash[store_attribute.to_s].try(:type) == :hstore
+      end
 
       def create_time_zone_conversion_attribute?(name, column)
         column ||= typed_store_attributes[name]
