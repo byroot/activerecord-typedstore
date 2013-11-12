@@ -574,36 +574,48 @@ shared_examples 'a model supporting arrays' do |regular=false|
 
 end
 
-describe Sqlite3RegularARModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a db backed model'
-end
+[true, false].each do |enabled|
 
-describe MysqlRegularARModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a db backed model'
-end if defined?(MysqlRegularARModel)
+  describe "with time_zone_aware_attributes set to #{enabled}" do
 
-describe PostgresqlRegularARModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a db backed model'
-  it_should_behave_like 'a model supporting arrays', true if ar_version >= ar_4_0
-end if defined?(PostgresqlRegularARModel)
+    before :each do
+      Models.each { |m| m.time_zone_aware_attributes = enabled }
+    end
 
-describe YamlTypedStoreModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a store'
-  it_should_behave_like 'a model supporting arrays'
-end
+    describe Sqlite3RegularARModel do
+      it_should_behave_like 'any model'
+      it_should_behave_like 'a db backed model'
+    end
 
-describe JsonTypedStoreModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a store'
-  it_should_behave_like 'a model supporting arrays'
-end
+    describe MysqlRegularARModel do
+      it_should_behave_like 'any model'
+      it_should_behave_like 'a db backed model'
+    end if defined?(MysqlRegularARModel)
 
-describe MarshalTypedStoreModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a store'
-  it_should_behave_like 'a model supporting arrays'
+    describe PostgresqlRegularARModel do
+      it_should_behave_like 'any model'
+      it_should_behave_like 'a db backed model'
+      it_should_behave_like 'a model supporting arrays', true if ar_version >= ar_4_0
+    end if defined?(PostgresqlRegularARModel)
+
+    describe YamlTypedStoreModel do
+      it_should_behave_like 'any model'
+      it_should_behave_like 'a store'
+      it_should_behave_like 'a model supporting arrays'
+    end
+
+    describe JsonTypedStoreModel do
+      it_should_behave_like 'any model'
+      it_should_behave_like 'a store'
+      it_should_behave_like 'a model supporting arrays'
+    end
+
+    describe MarshalTypedStoreModel do
+      it_should_behave_like 'any model'
+      it_should_behave_like 'a store'
+      it_should_behave_like 'a model supporting arrays'
+    end
+
+  end
+
 end

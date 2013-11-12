@@ -73,8 +73,10 @@ end
 ActiveRecord::Migration.verbose = false
 CreateAllTables.up
 
+
 if ENV['MYSQL']
   class MysqlRegularARModel < ActiveRecord::Base
+    self.time_zone_aware_attributes = true
     establish_connection 'test_mysql'
     store :untyped_settings, accessors: [:title]
   end
@@ -82,17 +84,20 @@ end
 
 if ENV['POSTGRES']
   class PostgresqlRegularARModel < ActiveRecord::Base
+    self.time_zone_aware_attributes = true
     establish_connection 'test_postgresql'
     store :untyped_settings, accessors: [:title]
   end
 end
 
 class Sqlite3RegularARModel < ActiveRecord::Base
+  self.time_zone_aware_attributes = true
   establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
 end
 
 class YamlTypedStoreModel < ActiveRecord::Base
+  self.time_zone_aware_attributes = true
   establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings do |s|
@@ -118,6 +123,7 @@ class ColumnCoder
 end
 
 class JsonTypedStoreModel < ActiveRecord::Base
+  self.time_zone_aware_attributes = true
   establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(JSON) do |s|
@@ -126,9 +132,20 @@ class JsonTypedStoreModel < ActiveRecord::Base
 end
 
 class MarshalTypedStoreModel < ActiveRecord::Base
+  self.time_zone_aware_attributes = true
   establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(Marshal) do |s|
     define_store_columns(s)
   end
 end
+
+
+Models = [
+  Sqlite3RegularARModel,
+  YamlTypedStoreModel,
+  JsonTypedStoreModel,
+  MarshalTypedStoreModel
+]
+Models << MysqlRegularARModel if defined?(MysqlRegularARModel)
+Models << PostgresqlRegularARModel if defined?(PostgresqlRegularARModel)
