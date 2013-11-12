@@ -582,13 +582,13 @@ end
 describe MysqlRegularARModel do
   it_should_behave_like 'any model'
   it_should_behave_like 'a db backed model'
-end
+end if defined?(MysqlRegularARModel)
 
 describe PostgresqlRegularARModel do
   it_should_behave_like 'any model'
   it_should_behave_like 'a db backed model'
   it_should_behave_like 'a model supporting arrays', true if ar_version >= ar_4_0
-end
+end if defined?(PostgresqlRegularARModel)
 
 describe YamlTypedStoreModel do
   it_should_behave_like 'any model'

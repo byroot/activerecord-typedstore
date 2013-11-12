@@ -53,11 +53,15 @@ class CreateAllTables < ActiveRecord::Migration
   end
 
   def self.up
-    ActiveRecord::Base.establish_connection('test_mysql')
-    recreate_table(:mysql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+    if ENV['MYSQL']
+      ActiveRecord::Base.establish_connection('test_mysql')
+      recreate_table(:mysql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+    end
 
-    ActiveRecord::Base.establish_connection('test_postgresql')
-    recreate_table(:postgresql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+    if ENV['POSTGRES']
+      ActiveRecord::Base.establish_connection('test_postgresql')
+      recreate_table(:postgresql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+    end
 
     ActiveRecord::Base.establish_connection('test_sqlite3')
     recreate_table(:sqlite3_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
@@ -69,14 +73,18 @@ end
 ActiveRecord::Migration.verbose = false
 CreateAllTables.up
 
-class MysqlRegularARModel < ActiveRecord::Base
-  establish_connection 'test_mysql'
-  store :untyped_settings, accessors: [:title]
+if ENV['MYSQL']
+  class MysqlRegularARModel < ActiveRecord::Base
+    establish_connection 'test_mysql'
+    store :untyped_settings, accessors: [:title]
+  end
 end
 
-class PostgresqlRegularARModel < ActiveRecord::Base
-  establish_connection 'test_postgresql'
-  store :untyped_settings, accessors: [:title]
+if ENV['POSTGRES']
+  class PostgresqlRegularARModel < ActiveRecord::Base
+    establish_connection 'test_postgresql'
+    store :untyped_settings, accessors: [:title]
+  end
 end
 
 class Sqlite3RegularARModel < ActiveRecord::Base
@@ -93,11 +101,11 @@ class YamlTypedStoreModel < ActiveRecord::Base
 end
 
 class ColumnCoder
-  
+
   def initialize(coder)
     @coder = coder
   end
-  
+
   def load(data)
     return {} unless data
     @coder.load(data)
