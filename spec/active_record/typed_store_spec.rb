@@ -433,7 +433,7 @@ shared_examples 'any model' do
 
 end
 
-shared_examples 'a store' do
+shared_examples 'a store' do |retain_type=true|
 
   let(:model) { described_class.new }
 
@@ -491,7 +491,7 @@ shared_examples 'a store' do
       expect(model.reload.author).to be == 'George'
 
       model.update_attributes(author: 42)
-      expect(model.reload.author).to be == 42
+      expect(model.reload.author).to be == (retain_type ? 42 : '42')
     end
 
     it 'still handle default' do
@@ -599,11 +599,14 @@ describe PostgresqlRegularARModel do
   it_should_behave_like 'a model supporting arrays', true if AR_VERSION >= AR_4_0
 end if defined?(PostgresqlRegularARModel)
 
-# describe PostgresHstoreTypedStoreModel do
-#   it_should_behave_like 'any model'
-#   it_should_behave_like 'a store'
-#   #it_should_behave_like 'a model supporting arrays'
-# end if defined?(PostgresHstoreTypedStoreModel)
+describe PostgresHstoreTypedStoreModel do
+  if AR_VERSION >= AR_4_0
+    pending('TODO: Rails edge HStore compatibiliy')
+  else
+    it_should_behave_like 'any model'
+    it_should_behave_like 'a store', false
+  end
+end if defined?(PostgresHstoreTypedStoreModel)
 
 describe PostgresJsonTypedStoreModel do
   it_should_behave_like 'any model'
