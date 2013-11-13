@@ -515,7 +515,7 @@ shared_examples 'a db backed model' do
 
 end
 
-shared_examples 'a model supporting arrays' do |regular=false|
+shared_examples 'a model supporting arrays' do |pg_native=false|
 
   let(:model) { described_class.new }
 
@@ -525,7 +525,7 @@ shared_examples 'a model supporting arrays' do |regular=false|
   end
 
   it 'cast values inside the array (integer)' do
-    pending('ActiveRecord bug: https://github.com/rails/rails/pull/11245') if regular
+    pending('ActiveRecord bug: https://github.com/rails/rails/pull/11245') if pg_native
     model.update_attributes(grades: ['1', 2, 3.4])
     expect(model.reload.grades).to be == [1, 2, 3]
   end
@@ -545,14 +545,14 @@ shared_examples 'a model supporting arrays' do |regular=false|
     expect(model.reload.grades).to be == []
   end
 
-  if !regular || AR_VERSION == AR_4_1
+  if !pg_native || AR_VERSION == AR_4_1
     it 'accept multidimensianl arrays' do
       model.update_attributes(grades: [[1, 2], [3, 4]])
       expect(model.reload.grades).to be == [[1, 2], [3, 4]]
     end
   end
 
-  if regular
+  if pg_native
 
     it 'raise on non rectangular multidimensianl arrays' do
       expect{
