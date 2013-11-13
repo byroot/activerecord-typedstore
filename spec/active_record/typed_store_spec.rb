@@ -570,60 +570,49 @@ shared_examples 'a model supporting arrays' do |regular=false|
 
 end
 
-[true, false].each do |enabled|
 
-  describe "with time_zone_aware_attributes set to #{enabled}" do
+describe Sqlite3RegularARModel do
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a db backed model'
+end
 
-    before :each do
-      Models.each { |m| m.time_zone_aware_attributes = enabled }
-    end
+describe MysqlRegularARModel do
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a db backed model'
+end if defined?(MysqlRegularARModel)
 
-    describe Sqlite3RegularARModel do
-      it_should_behave_like 'any model'
-      it_should_behave_like 'a db backed model'
-    end
+describe PostgresqlRegularARModel do
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a db backed model'
+  it_should_behave_like 'a model supporting arrays', true if AR_VERSION >= AR_4_0
+end if defined?(PostgresqlRegularARModel)
 
-    describe MysqlRegularARModel do
-      it_should_behave_like 'any model'
-      it_should_behave_like 'a db backed model'
-    end if defined?(MysqlRegularARModel)
+# describe PostgresHstoreTypedStoreModel do
+#   it_should_behave_like 'any model'
+#   it_should_behave_like 'a store'
+#   #it_should_behave_like 'a model supporting arrays'
+# end if defined?(PostgresHstoreTypedStoreModel)
 
-    describe PostgresqlRegularARModel do
-      it_should_behave_like 'any model'
-      it_should_behave_like 'a db backed model'
-      it_should_behave_like 'a model supporting arrays', true if AR_VERSION >= AR_4_0
-    end if defined?(PostgresqlRegularARModel)
+describe PostgresJsonTypedStoreModel do
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a store'
+  it_should_behave_like 'a model supporting arrays'
+end if defined?(PostgresJsonTypedStoreModel)
 
-    # describe PostgresHstoreTypedStoreModel do
-    #   it_should_behave_like 'any model'
-    #   it_should_behave_like 'a store'
-    #   #it_should_behave_like 'a model supporting arrays'
-    # end if defined?(PostgresHstoreTypedStoreModel)
+describe YamlTypedStoreModel do
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a store'
+  it_should_behave_like 'a model supporting arrays'
+end
 
-    describe PostgresJsonTypedStoreModel do
-      it_should_behave_like 'any model'
-      it_should_behave_like 'a store'
-      it_should_behave_like 'a model supporting arrays'
-    end if defined?(PostgresJsonTypedStoreModel)
+describe JsonTypedStoreModel do
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a store'
+  it_should_behave_like 'a model supporting arrays'
+end
 
-    describe YamlTypedStoreModel do
-      it_should_behave_like 'any model'
-      it_should_behave_like 'a store'
-      it_should_behave_like 'a model supporting arrays'
-    end
-
-    describe JsonTypedStoreModel do
-      it_should_behave_like 'any model'
-      it_should_behave_like 'a store'
-      it_should_behave_like 'a model supporting arrays'
-    end
-
-    describe MarshalTypedStoreModel do
-      it_should_behave_like 'any model'
-      it_should_behave_like 'a store'
-      it_should_behave_like 'a model supporting arrays'
-    end
-
-  end
-
+describe MarshalTypedStoreModel do
+  it_should_behave_like 'any model'
+  it_should_behave_like 'a store'
+  it_should_behave_like 'a model supporting arrays'
 end

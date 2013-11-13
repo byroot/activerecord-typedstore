@@ -6,7 +6,7 @@ AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
 AR_4_0 = Gem::Version.new('4.0')
 AR_4_1 = Gem::Version.new('4.1.0.beta')
 
-
+ActiveRecord::Base.time_zone_aware_attributes = ENV['TIMEZONE_AWARE'] != '0'
 ActiveRecord::Base.configurations = {
   'test_sqlite3' => {adapter: 'sqlite3', database: "/tmp/typed_store.db"},
   'test_postgresql' => {adapter: 'postgresql', database: 'typed_store_test', username: 'postgres'},
