@@ -36,7 +36,7 @@ class Shop < ActiveRecord::Base
     s.string :email
     s.datetime :publish_at
     s.integer :age, null: false
-    
+
     # You can define array attributes like in rails 4 and postgres
     s.string :tags, array: true, default: [], null: false
 
@@ -92,3 +92,8 @@ If not, please fill an issue.
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+## TODO
+
+- HStore support with ActiveRecord 4.1.0.beta (master)
+- Handle casting and default at the store layer, so accessors are not mandatory anymore. See #4
