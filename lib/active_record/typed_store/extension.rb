@@ -66,6 +66,11 @@ module ActiveRecord::TypedStore
     protected
 
     def write_store_attribute(store_attribute, key, value)
+      column = store_column_definition(store_attribute, key)
+      if column.try(:type) == :datetime && self.class.time_zone_aware_attributes && value.respond_to?(:in_time_zone)
+        value = value.in_time_zone
+      end
+
       previous_value = read_store_attribute(store_attribute, key)
       casted_value = cast_store_attribute(store_attribute, key, value)
       attribute_will_change!(key.to_s) if casted_value != previous_value

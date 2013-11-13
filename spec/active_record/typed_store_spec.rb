@@ -350,7 +350,7 @@ shared_examples 'any model' do
 
     let(:datetime) { DateTime.new(1984, 6, 8, 13, 57, 12) }
     let(:datetime_string) { '1984-06-08 13:57:12' }
-    let(:time) { Time.parse(datetime_string) }
+    let(:time) { datetime_string.respond_to?(:in_time_zone) ? datetime_string.in_time_zone : Time.parse(datetime_string) }
 
     context "with ActiveRecord #{ActiveRecord::VERSION::STRING}" do
 
@@ -390,10 +390,22 @@ shared_examples 'any model' do
           expect(model.reload.published_at).to be == datetime
         end
 
-        it 'properly cast assigned value to datetime' do
-          model.remind_at = datetime_string
-          expect(model.remind_at).to be == datetime
+        if ActiveRecord::Base.time_zone_aware_attributes
+
+          it 'properly cast assigned value to time' do
+            model.remind_at = datetime_string
+            expect(model.remind_at).to be == time
+          end
+
+        else
+
+          it 'properly cast assigned value to datetime' do
+            model.remind_at = datetime_string
+            expect(model.remind_at).to be == datetime
+          end
+
         end
+
       end
 
     end
