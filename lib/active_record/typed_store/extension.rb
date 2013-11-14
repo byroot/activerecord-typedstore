@@ -12,8 +12,6 @@ module ActiveRecord::TypedStore
     included do
       class_attribute :typed_stores, instance_accessor: false
       class_attribute :typed_store_attributes, instance_accessor: false
-      self.typed_stores = {}
-      self.typed_store_attributes = {}
     end
 
     module ClassMethods
@@ -27,19 +25,35 @@ module ActiveRecord::TypedStore
           store(store_attribute, options.merge(accessors: dsl.column_names))
         end
 
-        typed_stores[store_attribute] ||= {}
-        typed_stores[store_attribute].merge!(dsl.columns.index_by(&:name))
-        typed_store_attributes.merge!(dsl.columns.index_by { |c| c.name.to_s })
-
-        dsl.column_names.each { |c| define_virtual_attribute_method(c.to_s) }
-        dsl.column_names.each { |c| define_store_attribute_queries(store_attribute, c) }
-
+        register_typed_store_columns(store_attribute, dsl.columns)
         super(store_attribute, dsl) if defined?(super)
+
+        dsl.column_names.each { |c| define_store_attribute_queries(store_attribute, c) }
 
         dsl
       end
 
+      def define_attribute_methods
+        super
+        define_typed_store_attribute_methods
+      end
+
       private
+
+      def register_typed_store_columns(store_attribute, columns)
+        self.typed_stores ||= {}
+        self.typed_store_attributes ||= {}
+        typed_stores[store_attribute] ||= {}
+        typed_stores[store_attribute].merge!(columns.index_by(&:name))
+        typed_store_attributes.merge!(columns.index_by { |c| c.name.to_s })
+      end
+
+      def define_typed_store_attribute_methods
+        return unless typed_store_attributes
+        typed_store_attributes.keys.each do |attribute|
+          define_virtual_attribute_method(attribute)
+        end
+      end
 
       def hstore?(store_attribute)
         columns_hash[store_attribute.to_s].try(:type) == :hstore
@@ -66,7 +80,7 @@ module ActiveRecord::TypedStore
     protected
 
     def write_store_attribute(store_attribute, key, value)
-      column = store_column_definition(store_attribute, key)
+      column = store_column(store_attribute, key)
       if column.try(:type) == :datetime && self.class.time_zone_aware_attributes && value.respond_to?(:in_time_zone)
         value = value.in_time_zone
       end
@@ -80,13 +94,17 @@ module ActiveRecord::TypedStore
     private
 
     def cast_store_attribute(store_attribute, key, value)
-      column = store_column_definition(store_attribute, key)
+      column = store_column(store_attribute, key)
       column ? column.cast(value) : value
     end
 
-    def store_column_definition(store_attribute, key)
-      store_definition = self.class.typed_stores[store_attribute]
-      store_definition && store_definition[key]
+    def store_column(store_attribute, key)
+      store = store_columns(store_attribute)
+      store && store[key]
+    end
+
+    def store_columns(store_attribute)
+      self.class.typed_stores.try(:[], store_attribute)
     end
 
     def if_store_uninitialized(store_attribute)
@@ -98,6 +116,7 @@ module ActiveRecord::TypedStore
     end
 
     def reload_stores!
+      return unless self.class.typed_stores
       self.class.typed_stores.keys.each do |store_attribute|
         instance_variable_set("@_#{store_attribute}_initialized", false)
       end
@@ -107,7 +126,7 @@ module ActiveRecord::TypedStore
       store = defined?(super) ? super : send(store_attribute)
       store.tap do |store|
         if_store_uninitialized(store_attribute) do
-          if columns = self.class.typed_stores[store_attribute]
+          if columns = store_columns(store_attribute)
             initialize_store(store, columns.values)
           end
         end
@@ -133,7 +152,7 @@ module ActiveRecord::TypedStore
       when true        then true
       when false, nil  then false
       else
-        column = store_column_definition(store_attribute, key)
+        column = store_column(store_attribute, key)
 
         if column.number?
           !value.zero?

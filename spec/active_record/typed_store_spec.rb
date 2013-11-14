@@ -4,6 +4,16 @@ shared_examples 'any model' do
 
   let(:model) { described_class.new }
 
+  describe 'reset_column_information' do
+
+    it 'do not definitely undefine attributes' do
+      expect {
+        described_class.reset_column_information
+      }.to_not change { model.age_changed? }
+    end
+
+  end
+
   describe 'regular AR::Store' do
 
     it 'save attributes as usual' do
