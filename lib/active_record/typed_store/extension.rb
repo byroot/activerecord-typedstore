@@ -1,5 +1,7 @@
+require 'active_record/typed_store/coder'
 require 'active_record/typed_store/column'
 require 'active_record/typed_store/dsl'
+require 'active_record/typed_store/typed_hash'
 
 module ActiveRecord::TypedStore
   AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
@@ -19,11 +21,8 @@ module ActiveRecord::TypedStore
       def typed_store(store_attribute, options={}, &block)
         dsl = DSL.new(&block)
 
-        if hstore?(store_attribute)
-          store_accessor(store_attribute, dsl.column_names)
-        else
-          store(store_attribute, options.merge(accessors: dsl.column_names))
-        end
+        serialize store_attribute, create_coder(store_attribute, dsl.columns).new(options[:coder])
+        store_accessor(store_attribute, dsl.column_names)
 
         register_typed_store_columns(store_attribute, dsl.columns)
         super(store_attribute, dsl) if defined?(super)
@@ -39,6 +38,12 @@ module ActiveRecord::TypedStore
       end
 
       private
+
+      def create_coder(store_attribute, columns)
+        store_class = TypedHash.create(columns)
+        const_set("#{store_attribute}_hash".camelize, store_class)
+        Coder.create(store_class)
+      end
 
       def register_typed_store_columns(store_attribute, columns)
         self.typed_stores ||= {}
@@ -72,11 +77,6 @@ module ActiveRecord::TypedStore
 
     end
 
-    def reload(*)
-      reload_stores!
-      super
-    end
-
     protected
 
     def write_store_attribute(store_attribute, key, value)
@@ -86,17 +86,11 @@ module ActiveRecord::TypedStore
       end
 
       previous_value = read_store_attribute(store_attribute, key)
-      casted_value = cast_store_attribute(store_attribute, key, value)
-      attribute_will_change!(key.to_s) if casted_value != previous_value
-      super(store_attribute, key, casted_value)
+      attribute_will_change!(key.to_s) if value != previous_value
+      super
     end
 
     private
-
-    def cast_store_attribute(store_attribute, key, value)
-      column = store_column(store_attribute, key)
-      column ? column.cast(value) : value
-    end
 
     def store_column(store_attribute, key)
       store = store_columns(store_attribute)
@@ -105,43 +99,6 @@ module ActiveRecord::TypedStore
 
     def store_columns(store_attribute)
       self.class.typed_stores.try(:[], store_attribute)
-    end
-
-    def if_store_uninitialized(store_attribute)
-      initialized = "@_#{store_attribute}_initialized"
-      unless instance_variable_get(initialized)
-        yield
-        instance_variable_set(initialized, true)
-      end
-    end
-
-    def reload_stores!
-      return unless self.class.typed_stores
-      self.class.typed_stores.keys.each do |store_attribute|
-        instance_variable_set("@_#{store_attribute}_initialized", false)
-      end
-    end
-
-    def initialize_store_attribute(store_attribute)
-      store = defined?(super) ? super : send(store_attribute)
-      store.tap do |store|
-        if_store_uninitialized(store_attribute) do
-          if columns = store_columns(store_attribute)
-            initialize_store(store, columns.values)
-          end
-        end
-      end
-    end
-
-    def initialize_store(store, columns)
-      columns.each do |column|
-        if store.has_key?(column.name)
-          store[column.name] = column.cast(store[column.name])
-        else
-          store[column.name] = column.default if column.has_default?
-        end
-      end
-      store
     end
 
     # heavilly inspired from ActiveRecord::Base#query_attribute

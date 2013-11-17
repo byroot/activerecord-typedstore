@@ -447,39 +447,6 @@ shared_examples 'a store' do |retain_type=true|
 
   let(:model) { described_class.new }
 
-  describe 'initialization' do
-
-    it 'is done only once' do
-      model.should_receive(:initialize_store).once
-      3.times do
-        model.age = (rand * 100).to_i
-        model.age
-      end
-    end
-
-    it 'is done again after a reload' do
-      model.save
-
-      model.should_receive(:initialize_store).twice
-      3.times do
-        model.age = (rand * 100).to_i
-        model.age
-      end
-      model.reload
-      3.times do
-        model.age = (rand * 100).to_i
-        model.age
-      end
-    end
-
-    it 'is not performe if no store attributes are accessed' do
-      model.should_not_receive(:initialize_store)
-      model.update_attributes(untyped_settings: {foo: :bar})
-      model.update_attributes(untyped_settings: {})
-    end
-
-  end
-
   describe 'attributes' do
 
     it 'retrieve default if assigned nil and null not allowed' do
