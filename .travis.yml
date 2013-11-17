@@ -12,3 +12,7 @@ before_script:
 env:
   - TIMEZONE_AWARE=1 POSTGRES=1 MYSQL=1 POSTGRES_URL=$(curl http://api.postgression.com)
   - TIMEZONE_AWARE=0 POSTGRES=1 MYSQL=1 POSTGRES_URL=$(curl http://api.postgression.com)
+
+matrix:
+  allow_failures:
+    - gemfile: gemfiles/Gemfile.ar-edge
