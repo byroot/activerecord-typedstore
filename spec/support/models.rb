@@ -172,10 +172,23 @@ class JsonTypedStoreModel < ActiveRecord::Base
   end
 end
 
+module MarshalCoder
+  extend self
+
+  def load(serial)
+    Marshal.load(Base64.decode64(serial))
+  end
+
+  def dump(value)
+    Base64.encode64(Marshal.dump(value))
+  end
+
+end
+
 class MarshalTypedStoreModel < ActiveRecord::Base
   establish_connection 'test_sqlite3'
   store :untyped_settings, accessors: [:title]
-  typed_store :settings, coder: ColumnCoder.new(Marshal) do |s|
+  typed_store :settings, coder: ColumnCoder.new(MarshalCoder) do |s|
     define_store_columns(s)
   end
 end
