@@ -19,15 +19,15 @@ module ActiveRecord::TypedStore
     module ClassMethods
 
       def typed_store(store_attribute, options={}, &block)
-        dsl = DSL.new(&block)
+        dsl = DSL.new(options.fetch(:accessors, true), &block)
 
         serialize store_attribute, create_coder(store_attribute, dsl.columns).new(options[:coder])
-        store_accessor(store_attribute, dsl.column_names)
+        store_accessor(store_attribute, dsl.accessors)
 
         register_typed_store_columns(store_attribute, dsl.columns)
         super(store_attribute, dsl) if defined?(super)
 
-        dsl.column_names.each { |c| define_store_attribute_queries(store_attribute, c) }
+        dsl.accessors.each { |c| define_store_attribute_queries(store_attribute, c) }
 
         dsl
       end
@@ -55,7 +55,8 @@ module ActiveRecord::TypedStore
 
       def define_typed_store_attribute_methods
         return unless typed_store_attributes
-        typed_store_attributes.keys.each do |attribute|
+        accessors = typed_store_attributes.values.select(&:accessor?).map(&:name).map(&:to_s)
+        accessors.each do |attribute|
           define_virtual_attribute_method(attribute)
         end
       end

@@ -48,6 +48,7 @@ def define_store_columns(t)
   define_columns(t)
   t.any :author
   t.any :source, blank: false, default: 'web'
+  t.string :country, blank: false, default: 'Canada', accessor: false
 end
 
 class CreateAllTables < ActiveRecord::Migration

@@ -461,6 +461,27 @@ shared_examples 'a store' do |retain_type=true|
 
   end
 
+  describe 'attributes without accessors' do
+
+    it 'cannot be accessed as a model attribute' do
+      expect(model).to_not respond_to :country
+      expect(model).to_not respond_to :country=
+    end
+
+    it 'cannot be queried' do
+      expect(model).to_not respond_to :country?
+    end
+
+    it 'cannot be reset' do
+      expect(model).to_not respond_to :reset_country!
+    end
+
+    it 'still has casting a default handling' do
+      expect(model.settings[:country]).to be == 'Canada'
+    end
+
+  end
+
   describe '`any` attributes' do
 
     it 'accept any type' do

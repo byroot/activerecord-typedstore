@@ -10,6 +10,11 @@ module ActiveRecord::TypedStore
       @default = extract_default(options.fetch(:default, nil))
       @null = options.fetch(:null, true)
       @blank = options.fetch(:blank, true)
+      @accessor = options.fetch(:accessor, true)
+    end
+
+    def accessor?
+      @accessor
     end
 
     def cast(value)
