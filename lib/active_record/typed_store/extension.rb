@@ -53,11 +53,14 @@ module ActiveRecord::TypedStore
       end
 
       def define_typed_store_attribute_methods
-        return unless typed_store_attributes
-        accessors = typed_store_attributes.values.select(&:accessor?).map(&:name).map(&:to_s)
-        accessors.each do |attribute|
+        store_accessors.each do |attribute|
           define_virtual_attribute_method(attribute)
         end
+      end
+
+      def store_accessors
+        return [] unless typed_store_attributes
+        typed_store_attributes.values.select(&:accessor?).map(&:name).map(&:to_s)
       end
 
       def hstore?(store_attribute)
