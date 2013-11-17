@@ -78,6 +78,19 @@ shop.save
 shop.reload
 shop.settings[:unknown] # => 'Hello World'
 
+# If you only want type casting and default handling without accessors
+
+# you can disable them store wide
+typed_store :settings, accessors: false do |s|
+  # ...
+end
+
+# or on a per attribute basis
+typed_store :settings do |s|
+  s.integer :age
+  s.string :postal_code, accessor: false
+end
+
 ```
 
 Type casting rules and attribute behavior are exactly the same as a for real database columns.
