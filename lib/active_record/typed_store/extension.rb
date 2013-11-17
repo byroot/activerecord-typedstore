@@ -123,7 +123,6 @@ module ActiveRecord::TypedStore
   end
 
   require 'active_record/typed_store/ar_32_fallbacks' if IS_AR_3_2
-  require 'active_record/typed_store/ar_41_fallbacks' if IS_AR_4_1
   unless IS_AR_3_2
     ActiveModel::AttributeMethods::ClassMethods.send(:alias_method, :define_virtual_attribute_method, :define_attribute_method)
   end
