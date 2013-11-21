@@ -1,3 +1,24 @@
+class ActiveRecord::Store::IndifferentCoder
+  # Backport from rails 4.0
+  def initialize(coder_or_class_name)
+    @coder =
+      if coder_or_class_name.respond_to?(:load) && coder_or_class_name.respond_to?(:dump)
+        coder_or_class_name
+      else
+        ActiveRecord::Coders::YAMLColumn.new(coder_or_class_name || Object)
+      end
+  end
+
+  def dump(obj)
+    @coder.dump self.class.as_indifferent_hash(obj)
+  end
+
+  def load(yaml)
+    self.class.as_indifferent_hash @coder.load(yaml)
+  end
+
+end
+
 module ActiveRecord::TypedStore
 
   module AR32Fallbacks
@@ -11,7 +32,7 @@ module ActiveRecord::TypedStore
     module ClassMethods
 
       def typed_store(store_attribute, dsl)
-        _ar_32_fallback_accessors(store_attribute, dsl.column_names)
+        _ar_32_fallback_accessors(store_attribute, dsl.accessors)
       end
 
       protected
@@ -34,9 +55,9 @@ module ActiveRecord::TypedStore
         attribute_method_matchers_cache.clear
       end
 
-      def _ar_32_fallback_accessors(store_attribute, column_names)
-        column_names.each do |name|
-          _ar_32_fallback_accessor(store_attribute, name)
+      def _ar_32_fallback_accessors(store_attribute, accessors)
+        accessors.each do |accessor|
+          _ar_32_fallback_accessor(store_attribute, accessor)
         end
       end
 

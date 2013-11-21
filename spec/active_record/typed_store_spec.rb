@@ -447,39 +447,6 @@ shared_examples 'a store' do |retain_type=true|
 
   let(:model) { described_class.new }
 
-  describe 'initialization' do
-
-    it 'is done only once' do
-      model.should_receive(:initialize_store).once
-      3.times do
-        model.age = (rand * 100).to_i
-        model.age
-      end
-    end
-
-    it 'is done again after a reload' do
-      model.save
-
-      model.should_receive(:initialize_store).twice
-      3.times do
-        model.age = (rand * 100).to_i
-        model.age
-      end
-      model.reload
-      3.times do
-        model.age = (rand * 100).to_i
-        model.age
-      end
-    end
-
-    it 'is not performe if no store attributes are accessed' do
-      model.should_not_receive(:initialize_store)
-      model.update_attributes(untyped_settings: {foo: :bar})
-      model.update_attributes(untyped_settings: {})
-    end
-
-  end
-
   describe 'attributes' do
 
     it 'retrieve default if assigned nil and null not allowed' do
@@ -490,6 +457,27 @@ shared_examples 'a store' do |retain_type=true|
     it 'retreive default if assigned a blank value and column cannot be blank' do
       model.update_attributes(nickname: '')
       expect(model.reload.nickname).to be == 'Please enter your nickname'
+    end
+
+  end
+
+  describe 'attributes without accessors' do
+
+    it 'cannot be accessed as a model attribute' do
+      expect(model).to_not respond_to :country
+      expect(model).to_not respond_to :country=
+    end
+
+    it 'cannot be queried' do
+      expect(model).to_not respond_to :country?
+    end
+
+    it 'cannot be reset' do
+      expect(model).to_not respond_to :reset_country!
+    end
+
+    it 'still has casting a default handling' do
+      expect(model.settings[:country]).to be == 'Canada'
     end
 
   end
