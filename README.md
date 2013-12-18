@@ -106,8 +106,3 @@ If not, please fill an issue.
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
-
-## TODO
-
-- HStore support with ActiveRecord 4.1.0.beta (master)
-- Handle casting and default at the store layer, so accessors are not mandatory anymore. See #4
