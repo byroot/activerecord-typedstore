@@ -4,6 +4,7 @@ rvm:
 gemfile:
   - gemfiles/Gemfile.ar-3.2
   - gemfiles/Gemfile.ar-4.0
+  - gemfiles/Gemfile.ar-4.1
   - gemfiles/Gemfile.ar-edge
 
 before_script:
