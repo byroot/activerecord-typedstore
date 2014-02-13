@@ -102,6 +102,16 @@ module ActiveRecord::TypedStore
 
     private
 
+    def write_attribute(attr_name, value)
+      if coder = self.class.serialized_attributes[attr_name]
+        if coder.is_a?(ActiveRecord::TypedStore::Coder)
+          return super(attr_name, coder.as_indifferent_hash(value))
+        end
+      end
+
+      super
+    end
+
     def store_column(store_attribute, key)
       store = store_columns(store_attribute)
       store && store[key]
