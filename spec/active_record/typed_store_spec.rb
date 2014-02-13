@@ -119,6 +119,11 @@ shared_examples 'any model' do
       expect(model.cell_phone?).to be_false
     end
 
+    it 'not define the attributes more than one time' do
+      model.respond_to?(:foo)
+      expect(described_class).to receive(:define_virtual_attribute_method).never
+      model.respond_to?(:foobar)
+    end
   end
 
   describe 'boolean attribute' do
