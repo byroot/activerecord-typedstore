@@ -36,6 +36,11 @@ module ActiveRecord::TypedStore
         define_typed_store_attribute_methods
       end
 
+      def undefine_attribute_methods # :nodoc:
+        super if @typed_store_attribute_methods_generated
+        @typed_store_attribute_methods_generated = false
+      end
+
       private
 
       def create_coder(store_attribute, columns)
@@ -53,9 +58,11 @@ module ActiveRecord::TypedStore
       end
 
       def define_typed_store_attribute_methods
+        return if @typed_store_attribute_methods_generated
         store_accessors.each do |attribute|
           define_virtual_attribute_method(attribute)
         end
+        @typed_store_attribute_methods_generated = true
       end
 
       def store_accessors
