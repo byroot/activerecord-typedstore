@@ -196,9 +196,16 @@ describe ActiveRecord::TypedStore::TypedHash do
         hash.merge!(source: '')
         expect(hash[:source]).to be == 'web'
       end
-
     end
-
   end
 
+  context 'unknown columns' do
+    let(:column) { ['age', :integer] }
+
+    it 'can be assigned' do
+      hash = hash_class.new
+      hash[:unknown_key] = 42
+      expect(hash[:unknown_key]).to be == 42
+    end
+  end
 end
