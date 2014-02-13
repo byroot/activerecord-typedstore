@@ -47,7 +47,7 @@ module ActiveRecord::TypedStore
     def cast_value(key, value)
       key = convert_key(key)
       column = columns[key]
-      return value unless columns
+      return value unless column
 
       casted_value = column.cast(value)
 
