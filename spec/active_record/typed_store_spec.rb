@@ -452,6 +452,22 @@ shared_examples 'a store' do |retain_type=true|
 
   let(:model) { described_class.new }
 
+  describe 'assigning the store' do
+
+    it 'coerce it to the proper typed hash' do
+      expect {
+        model.settings = {}
+      }.to_not change { model.settings.class }
+    end
+
+    it 'still handle default values' do
+      expect {
+        model.settings = {}
+      }.to_not change { model.settings['nickname'] }
+    end
+
+  end
+
   describe 'attributes' do
 
     it 'retrieve default if assigned nil and null not allowed' do
@@ -459,9 +475,18 @@ shared_examples 'a store' do |retain_type=true|
       expect(model.age).to be == 12
     end
 
-    it 'retreive default if assigned a blank value and column cannot be blank' do
-      model.update_attributes(nickname: '')
-      expect(model.reload.nickname).to be == 'Please enter your nickname'
+    context 'when column cannot be blank' do
+
+      it 'retreive default if not persisted yet, and nothing was assigned' do
+        expect(model.nickname).to be == 'Please enter your nickname'
+      end
+
+      it 'retreive default if assigned a blank value' do
+        model.update_attributes(nickname: '')
+        expect(model.nickname).to be == 'Please enter your nickname'
+        expect(model.reload.nickname).to be == 'Please enter your nickname'
+      end
+
     end
 
   end

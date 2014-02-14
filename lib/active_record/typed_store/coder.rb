@@ -17,6 +17,8 @@ module ActiveRecord::TypedStore
 
     end
 
+    delegate :as_indifferent_hash, to: 'self.class'
+
   end
 
 end
