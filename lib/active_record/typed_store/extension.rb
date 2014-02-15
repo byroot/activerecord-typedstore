@@ -70,10 +70,6 @@ module ActiveRecord::TypedStore
         typed_store_attributes.values.select(&:accessor?).map(&:name).map(&:to_s)
       end
 
-      def hstore?(store_attribute)
-        columns_hash[store_attribute.to_s].try(:type) == :hstore
-      end
-
       def create_time_zone_conversion_attribute?(name, column)
         column ||= typed_store_attributes[name]
         super(name, column)
