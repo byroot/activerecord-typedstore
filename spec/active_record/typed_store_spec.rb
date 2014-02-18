@@ -628,7 +628,7 @@ describe PostgresqlRegularARModel do
 end if defined?(PostgresqlRegularARModel)
 
 describe PostgresHstoreTypedStoreModel do
-  if AR_VERSION >= AR_4_0
+  if AR_VERSION >= AR_4_1
     pending('TODO: Rails edge HStore compatibiliy')
   else
     it_should_behave_like 'any model'

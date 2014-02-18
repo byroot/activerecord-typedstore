@@ -135,7 +135,7 @@ if ENV['POSTGRES']
     class PostgresHstoreTypedStoreModel < ActiveRecord::Base
       establish_connection ENV['POSTGRES_URL'] || 'test_postgresql'
       store :untyped_settings, accessors: [:title]
-      typed_store :settings do |s|
+      typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
         define_store_columns(s)
       end
     end
