@@ -124,7 +124,7 @@ end
 ```
 
 If you want to use Postgres HStore or JSON column types, then you need a very simple coder:
-
+```ruby
 module DumbCoder
   extend self
 
@@ -137,6 +137,7 @@ module DumbCoder
   end
 
 end
+```
 
 ## Contributing
 
