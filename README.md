@@ -139,6 +139,17 @@ module DumbCoder
 end
 ```
 
+## HStore limitations
+
+If you want to persist your store in a Postgres HStore, then there is some limitations imposed by the current HStore implementation in Postgres.
+Since HStore can only store strings:
+
+  - `array` attributes won't work
+  - `any` attributes will be converted to string
+
+If you use HStore because you need to be able to query the store from SQL, and any of these limitations are an issue for you,
+than you could probably use the JSON column type, which do not suffer from these limitations and is also queriable. 
+
 ## Contributing
 
 1. Fork it
