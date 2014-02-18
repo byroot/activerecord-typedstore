@@ -99,6 +99,45 @@ Actually the only difference is that you wont be able to query on these attribut
 
 If not, please fill an issue.
 
+## Serialization methods
+
+Just like for store, you can use any custom coder:
+
+```ruby
+module Base64MarshalCoder
+  extend self
+
+  def load(data)
+    return {} unless data
+    Marshal.load(Base64.decode64(data))
+  end
+
+  def dump(data)
+    Base64.encode64(Marshal.dump(data || {}))
+  end
+
+end
+
+typed_store :settings, coder: Base64MarshalCoder do |s|
+  # ...
+end
+```
+
+If you want to use Postgres HStore or JSON column types, then you need a very simple coder:
+
+module DumbCoder
+  extend self
+
+  def load(data)
+    data || {}
+  end
+
+  def dump(data)
+    data || {}
+  end
+
+end
+
 ## Contributing
 
 1. Fork it
