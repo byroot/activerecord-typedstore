@@ -176,6 +176,7 @@ module MarshalCoder
   extend self
 
   def load(serial)
+    return unless serial.present?
     Marshal.load(Base64.decode64(serial))
   end
 
