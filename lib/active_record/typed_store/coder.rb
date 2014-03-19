@@ -19,6 +19,10 @@ module ActiveRecord::TypedStore
 
     delegate :as_indifferent_hash, to: 'self.class'
 
+    def dump(obj)
+      @coder.dump(obj.try(:to_hash) || {})
+    end
+
   end
 
 end

@@ -529,6 +529,23 @@ shared_examples 'a store' do |retain_type=true|
 
   end
 
+  describe 'updated defaults' do
+
+    it 'update defaults for outdated serials' do
+      model.save!
+      expect(model.settings[:brand_new]).to be_nil
+      new_column = ActiveRecord::TypedStore::Column.new(:brand_new, :boolean, null: false, default: true)
+      begin
+        model.class::SettingsHash.columns['brand_new'] = new_column
+        model.reload
+        expect(model.settings[:brand_new]).to be_true
+      ensure
+        model.class::SettingsHash.columns.delete('brand_new')
+      end
+    end
+
+  end
+
 end
 
 shared_examples 'a db backed model' do
