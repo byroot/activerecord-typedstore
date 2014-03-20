@@ -94,7 +94,7 @@ class ColumnCoder
   end
 
   def load(data)
-    return {} unless data
+    return {} if data.blank?
     @coder.load(data)
   end
 
