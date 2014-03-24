@@ -90,6 +90,10 @@ module ActiveRecord::TypedStore
 
     end
 
+    def column_for_attribute(name)
+      super || self.class.typed_store_attributes[name.to_s]
+    end
+
     protected
 
     def write_store_attribute(store_attribute, key, value)
