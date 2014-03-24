@@ -61,8 +61,15 @@ module ActiveRecord::TypedStore
         return if @typed_store_attribute_methods_generated
         store_accessors.each do |attribute|
           define_virtual_attribute_method(attribute)
+          undefine_before_type_cast_method(attribute)
         end
         @typed_store_attribute_methods_generated = true
+      end
+
+      def undefine_before_type_cast_method(attribute)
+        # because it mess with ActionView forms, see #14.
+        method = "#{attribute}_before_type_cast"
+        undef_method(method) if method_defined?(method)
       end
 
       def store_accessors
