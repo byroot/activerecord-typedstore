@@ -65,6 +65,38 @@ shared_examples 'any model' do
       }.to change { model.age }.from(24).to(12)
     end
 
+    it 'does not dirty track assigning the same boolean' do
+      expect(model.enabled).to be_true
+      expect {
+        model.enabled = true
+      }.to_not change { model.enabled_changed? }
+    end
+
+    it 'dirty tracks when the boolean changes' do
+      expect(model.enabled).to be_true
+      expect {
+        model.enabled = false
+      }.to change { model.enabled_changed? }.from(false).to(true)
+    end
+
+    it 'does not dirty track assigning the same boolean even if it is a string' do
+      expect(model.enabled).to be_true
+      expect {
+        model.enabled = "true"
+      }.to_not change { model.enabled_changed? }
+    end
+
+    it 'dirty tracks when the string changes' do
+      expect {
+        model.name = "Smith"
+      }.to change { model.name_changed? }.from(false).to(true)
+    end
+
+    it 'does not dirty track assigning the same string' do
+      expect {
+        model.name = ""
+      }.to_not change { model.name_changed? }
+    end
   end
 
   describe 'unknown attribute' do
