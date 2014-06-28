@@ -99,7 +99,8 @@ module ActiveRecord::TypedStore
       end
 
       previous_value = read_store_attribute(store_attribute, key)
-      attribute_will_change!(key.to_s) if value != previous_value
+      new_value = column ? column.type_cast(value) : value
+      attribute_will_change!(key.to_s) if new_value != previous_value
       super
     end
 
