@@ -27,7 +27,7 @@ shared_examples 'any model' do
 
     it 'assign attributes received by #initialize' do
       model = described_class.new(public: true)
-      expect(model.public).to be_true
+      expect(model.public).to be true
     end
 
   end
@@ -66,21 +66,21 @@ shared_examples 'any model' do
     end
 
     it 'does not dirty track assigning the same boolean' do
-      expect(model.enabled).to be_true
+      expect(model.enabled).to be true
       expect {
         model.enabled = true
       }.to_not change { model.enabled_changed? }
     end
 
     it 'dirty tracks when the boolean changes' do
-      expect(model.enabled).to be_true
+      expect(model.enabled).to be true
       expect {
         model.enabled = false
       }.to change { model.enabled_changed? }.from(false).to(true)
     end
 
     it 'does not dirty track assigning the same boolean even if it is a string' do
-      expect(model.enabled).to be_true
+      expect(model.enabled).to be true
       expect {
         model.enabled = "true"
       }.to_not change { model.enabled_changed? }
@@ -140,15 +140,15 @@ shared_examples 'any model' do
 
     it 'any string is considered present' do
       model.name = 'Peter Gibbons'
-      expect(model.name?).to be_true
+      expect(model.name?).to be true
     end
 
     it 'empty string is not considered present' do
-      expect(model.name?).to be_false
+      expect(model.name?).to be false
     end
 
     it 'nil is not considered present' do
-      expect(model.cell_phone?).to be_false
+      expect(model.cell_phone?).to be false
     end
 
     it 'not define the attributes more than one time' do
@@ -161,14 +161,14 @@ shared_examples 'any model' do
   describe 'boolean attribute' do
 
     it 'has the defined :default as initial value' do
-      expect(model.public).to be_false
+      expect(model.public).to be false
     end
 
     [true, 1, '1', 't', 'T', 'true', 'TRUE', 'on', 'ON'].each do |value|
 
       it "cast `#{value.inspect}` as `true`" do
         model.public = value
-        expect(model.public).to be_true
+        expect(model.public).to be true
       end
 
     end
@@ -177,22 +177,22 @@ shared_examples 'any model' do
 
       it "cast `#{value.inspect}` as `false`" do
         model.public = value
-        expect(model.public).to be_false
+        expect(model.public).to be false
       end
 
     end
 
     it 'properly persit the value' do
       model.update_attributes(public: false)
-      expect(model.reload.public).to be_false
+      expect(model.reload.public).to be false
       model.update_attributes(public: true)
-      expect(model.reload.public).to be_true
+      expect(model.reload.public).to be true
     end
 
     it 'initialize with default value if the column is not nullable' do
-      expect(model.public).to be_false
+      expect(model.public).to be false
       model.save
-      expect(model.reload.public).to be_false
+      expect(model.reload.public).to be false
     end
 
     it 'can store nil if the column is nullable' do
@@ -202,20 +202,20 @@ shared_examples 'any model' do
 
     it 'save the default value if the column is nullable but the value not explictly set' do
       model.save
-      expect(model.reload.enabled).to be_true
+      expect(model.reload.enabled).to be true
     end
 
     it 'true is considered present' do
-      expect(model.enabled?).to be_true
+      expect(model.enabled?).to be true
     end
 
     it 'false is not considered present' do
-      expect(model.public?).to be_false
+      expect(model.public?).to be false
     end
 
     it 'nil is not considered present' do
       model.update_attributes(enabled: nil)
-      expect(model.enabled?).to be_false
+      expect(model.enabled?).to be false
     end
 
   end
@@ -242,22 +242,22 @@ shared_examples 'any model' do
     end
 
     it 'positive values are considered present' do
-      expect(model.age?).to be_true
+      expect(model.age?).to be true
     end
 
     it 'negative values are considered present' do
       model.age = -42
-      expect(model.age?).to be_true
+      expect(model.age?).to be true
     end
 
     it '0 is not considered present' do
       model.age = 0
-      expect(model.age?).to be_false
+      expect(model.age?).to be false
     end
 
     it 'nil is not considered present' do
       model.max_length = nil
-      expect(model.max_length?).to be_false
+      expect(model.max_length?).to be false
     end
 
   end
@@ -285,20 +285,20 @@ shared_examples 'any model' do
 
     it 'positive values are considered present' do
       model.rate = 4.2
-      expect(model.rate?).to be_true
+      expect(model.rate?).to be true
     end
 
     it 'negative values are considered present' do
       model.rate = -4.2
-      expect(model.rate?).to be_true
+      expect(model.rate?).to be true
     end
 
     it '0 is not considered present' do
-      expect(model.rate?).to be_false
+      expect(model.rate?).to be false
     end
 
     it 'nil is not considered present' do
-      expect(model.price?).to be_false
+      expect(model.price?).to be false
     end
 
   end
@@ -335,21 +335,21 @@ shared_examples 'any model' do
 
     it 'positive values are considered present' do
       model.shipping_cost = BigDecimal.new('4.2')
-      expect(model.shipping_cost?).to be_true
+      expect(model.shipping_cost?).to be true
     end
 
     it 'negative values are considered present' do
       model.shipping_cost = BigDecimal.new('-4.2')
-      expect(model.shipping_cost?).to be_true
+      expect(model.shipping_cost?).to be true
     end
 
     it '0 is not considered present' do
       model.shipping_cost = BigDecimal.new('0')
-      expect(model.shipping_cost?).to be_false
+      expect(model.shipping_cost?).to be false
     end
 
     it 'nil is not considered present' do
-      expect(model.shipping_cost?).to be_false
+      expect(model.shipping_cost?).to be false
     end
 
   end
@@ -384,11 +384,11 @@ shared_examples 'any model' do
 
     it 'any non-nil value is considered present' do
       model.remind_on = Date.new
-      expect(model.remind_on?).to be_true
+      expect(model.remind_on?).to be true
     end
 
     it 'nil is not considered present' do
-      expect(model.remind_on?).to be_false
+      expect(model.remind_on?).to be false
     end
 
   end
@@ -469,11 +469,11 @@ shared_examples 'any model' do
 
     it 'any non-nil value is considered present' do
       model.remind_at = DateTime.new
-      expect(model.remind_at?).to be_true
+      expect(model.remind_at?).to be true
     end
 
     it 'nil is not considered present' do
-      expect(model.remind_at?).to be_false
+      expect(model.remind_at?).to be false
     end
 
   end
@@ -574,7 +574,7 @@ shared_examples 'a store' do |retain_type=true|
       begin
         model.class::SettingsHash.columns['brand_new'] = new_column
         model.reload
-        expect(model.settings[:brand_new]).to be_true
+        expect(model.settings[:brand_new]).to be true
       ensure
         model.class::SettingsHash.columns.delete('brand_new')
       end
