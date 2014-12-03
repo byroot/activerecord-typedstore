@@ -116,6 +116,10 @@ module ActiveRecord::TypedStore
       super
     end
 
+    def keys_for_partial_write
+      super & self.class.column_names
+    end
+
     def store_column(store_attribute, key)
       store = store_columns(store_attribute)
       store && store[key]

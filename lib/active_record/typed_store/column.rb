@@ -29,7 +29,8 @@ module ActiveRecord::TypedStore
 
     def extract_default(value)
       return value if (type == :string || type == :text) && value.nil?
-      super
+
+      type_cast(value)
     end
 
     def type_cast(value, map=true)
@@ -46,9 +47,37 @@ module ActiveRecord::TypedStore
         return super(value.iso8601)
       end
 
-      super(value)
+      defined?(super) ? super(value) : type_cast_from_database(value)
     end
 
   end
 
+  if defined? ::ActiveRecord::Type
+    BaseColumn = remove_const(:Column)
+
+    class DecimalType < ::ActiveRecord::Type::Decimal
+      def type_cast_from_database(value)
+        value = value.to_s if value.is_a?(Float)
+        super(value)
+      end
+    end
+
+    class Column < BaseColumn
+      CAST_TYPES = {
+        boolean: ::ActiveRecord::Type::Boolean,
+        integer: ::ActiveRecord::Type::Integer,
+        string: ::ActiveRecord::Type::String,
+        float: ::ActiveRecord::Type::Float,
+        date: ::ActiveRecord::Type::Date,
+        datetime: ::ActiveRecord::Type::DateTime,
+        decimal: DecimalType,
+        any: ::ActiveRecord::Type::Value,
+      }
+
+      def initialize(_, type, *)
+        @cast_type = CAST_TYPES.fetch(type).new
+        super
+      end
+    end
+  end
 end
