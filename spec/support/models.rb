@@ -72,8 +72,10 @@ class CreateAllTables < ActiveRecord::Migration
         execute "create extension if not exists hstore"
         recreate_table(:postgres_hstore_typed_store_models) { |t| t.hstore :settings; t.text :untyped_settings }
 
-        #execute "create extension if not exists json"
-        recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :untyped_settings }
+        if ENV['POSTGRES_JSON']
+          execute "create extension if not exists json"
+          recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :untyped_settings }
+        end
       end
     end
 
@@ -140,11 +142,13 @@ if ENV['POSTGRES']
       end
     end
 
-    class PostgresJsonTypedStoreModel < ActiveRecord::Base
-      establish_connection ENV['POSTGRES_URL'] || :test_postgresql
-      store :untyped_settings, accessors: [:title]
-      typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
-        define_store_columns(s)
+    if ENV['POSTGRES_JSON']
+      class PostgresJsonTypedStoreModel < ActiveRecord::Base
+        establish_connection ENV['POSTGRES_URL'] || :test_postgresql
+        store :untyped_settings, accessors: [:title]
+        typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
+          define_store_columns(s)
+        end
       end
     end
 

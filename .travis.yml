@@ -1,15 +1,14 @@
 language: ruby
 
 rvm:
-  - 1.9.3
-  - 2.0.0
-  - 2.1.0
+  - 1.9
+  - 2.0
   - 2.1
-
 gemfile:
   - gemfiles/Gemfile.ar-3.2
   - gemfiles/Gemfile.ar-4.0
   - gemfiles/Gemfile.ar-4.1
+  - gemfiles/Gemfile.ar-4.2
   - gemfiles/Gemfile.ar-edge
 
 env:
