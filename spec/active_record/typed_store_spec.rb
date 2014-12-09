@@ -615,7 +615,7 @@ shared_examples 'a model supporting arrays' do |pg_native=false|
   end
 
   it 'cast values inside the array (integer)' do
-    pending('ActiveRecord bug: https://github.com/rails/rails/pull/11245') if pg_native
+    pending('ActiveRecord bug: https://github.com/rails/rails/pull/11245') if pg_native && AR_VERSION < AR_4_2
     model.update_attributes(grades: ['1', 2, 3.4])
     expect(model.reload.grades).to be == [1, 2, 3]
   end
@@ -630,12 +630,14 @@ shared_examples 'a model supporting arrays' do |pg_native=false|
     expect(model.reload.tags).to be == ['1', nil]
   end
 
-  it 'convert non array value as empty array' do
-    model.update_attributes(grades: 'foo')
-    expect(model.reload.grades).to be == []
+  if !pg_native || AR_VERSION < AR_4_2
+    it 'convert non array value as empty array' do
+      model.update_attributes(grades: 'foo')
+      expect(model.reload.grades).to be == []
+    end
   end
 
-  if !pg_native || AR_VERSION == AR_4_1
+  if !pg_native || AR_VERSION >= AR_4_1
     it 'accept multidimensianl arrays' do
       model.update_attributes(grades: [[1, 2], [3, 4]])
       expect(model.reload.grades).to be == [[1, 2], [3, 4]]
