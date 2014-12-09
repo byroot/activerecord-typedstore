@@ -5,7 +5,8 @@ require 'active_record/typed_store/typed_hash'
 module ActiveRecord::TypedStore
   AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
   IS_AR_3_2 = AR_VERSION < Gem::Version.new('4.0')
-  IS_AR_4_1 = AR_VERSION >= Gem::Version.new('4.1.0.beta')
+  IS_AR_4_1 = AR_VERSION >= Gem::Version.new('4.1') && AR_VERSION < Gem::Version.new('4.2.0-rc1')
+  IS_AR_4_2 = AR_VERSION >= Gem::Version.new('4.2.0-rc1')
 
   module Extension
     extend ActiveSupport::Concern
@@ -92,6 +93,18 @@ module ActiveRecord::TypedStore
 
     protected
 
+    if IS_AR_4_2
+      def attribute_method?(attr_name)
+        super || store_attribute_method?(attr_name)
+      end
+    end
+
+    def store_attribute_method?(attr_name)
+      return unless self.class.typed_store_attributes
+      store_attribute = self.class.typed_store_attributes[attr_name]
+      store_attribute && store_attribute.accessor?
+    end
+
     def write_store_attribute(store_attribute, key, value)
       column = store_column(store_attribute, key)
       if column.try(:type) == :datetime && self.class.time_zone_aware_attributes && value.respond_to?(:in_time_zone)
@@ -106,14 +119,37 @@ module ActiveRecord::TypedStore
 
     private
 
+    if IS_AR_4_2
+      def match_attribute_method?(method_name)
+        match = super
+        return unless match
+        return if match.target == 'attribute_before_type_cast'.freeze && store_attribute_method?(match.attr_name)
+        match
+      end
+
+      def coder_for(attr_name)
+        column = self.class.columns_hash[attr_name]
+        return unless column.cast_type.is_a?(::ActiveRecord::Type::Serialized)
+        column.cast_type.coder
+      end
+    else
+      def coder_for(attr_name)
+        self.class.serialized_attributes[attr_name]
+      end
+    end
+
     def write_attribute(attr_name, value)
-      if coder = self.class.serialized_attributes[attr_name]
+      if coder = coder_for(attr_name)
         if coder.is_a?(ActiveRecord::TypedStore::Coder)
           return super(attr_name, coder.as_indifferent_hash(value))
         end
       end
 
       super
+    end
+
+    def keys_for_partial_write
+      super & self.class.column_names
     end
 
     def store_column(store_attribute, key)

@@ -5,6 +5,7 @@ require 'yaml'
 AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
 AR_4_0 = Gem::Version.new('4.0')
 AR_4_1 = Gem::Version.new('4.1.0.beta')
+AR_4_2 = Gem::Version.new('4.2.0-rc1')
 
 ActiveRecord::Base.time_zone_aware_attributes = ENV['TIMEZONE_AWARE'] != '0'
 ActiveRecord::Base.configurations = {
@@ -60,31 +61,33 @@ class CreateAllTables < ActiveRecord::Migration
 
   def self.up
     if ENV['MYSQL']
-      ActiveRecord::Base.establish_connection('test_mysql')
+      ActiveRecord::Base.establish_connection(:test_mysql)
       recreate_table(:mysql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
     end
 
     if ENV['POSTGRES']
-      ActiveRecord::Base.establish_connection(ENV['POSTGRES_URL'] || 'test_postgresql')
+      ActiveRecord::Base.establish_connection(ENV['POSTGRES_URL'] || :test_postgresql)
       recreate_table(:postgresql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
 
       if AR_VERSION >= AR_4_0
         execute "create extension if not exists hstore"
         recreate_table(:postgres_hstore_typed_store_models) { |t| t.hstore :settings; t.text :untyped_settings }
 
-        #execute "create extension if not exists json"
-        recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :untyped_settings }
+        if ENV['POSTGRES_JSON']
+          execute "create extension if not exists json"
+          recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :untyped_settings }
+        end
       end
     end
 
-    ActiveRecord::Base.establish_connection('test_sqlite3')
+    ActiveRecord::Base.establish_connection(:test_sqlite3)
     recreate_table(:sqlite3_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
     recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
     recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
     recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
   end
 end
-ActiveRecord::Migration.verbose = false
+ActiveRecord::Migration.verbose = true
 CreateAllTables.up
 
 class ColumnCoder
@@ -119,32 +122,34 @@ end
 
 if ENV['MYSQL']
   class MysqlRegularARModel < ActiveRecord::Base
-    establish_connection 'test_mysql'
+    establish_connection :test_mysql
     store :untyped_settings, accessors: [:title]
   end
 end
 
 if ENV['POSTGRES']
   class PostgresqlRegularARModel < ActiveRecord::Base
-    establish_connection ENV['POSTGRES_URL'] || 'test_postgresql'
+    establish_connection ENV['POSTGRES_URL'] || :test_postgresql
     store :untyped_settings, accessors: [:title]
   end
 
   if AR_VERSION >= AR_4_0
 
     class PostgresHstoreTypedStoreModel < ActiveRecord::Base
-      establish_connection ENV['POSTGRES_URL'] || 'test_postgresql'
+      establish_connection ENV['POSTGRES_URL'] || :test_postgresql
       store :untyped_settings, accessors: [:title]
       typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
         define_store_columns(s)
       end
     end
 
-    class PostgresJsonTypedStoreModel < ActiveRecord::Base
-      establish_connection ENV['POSTGRES_URL'] || 'test_postgresql'
-      store :untyped_settings, accessors: [:title]
-      typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
-        define_store_columns(s)
+    if ENV['POSTGRES_JSON']
+      class PostgresJsonTypedStoreModel < ActiveRecord::Base
+        establish_connection ENV['POSTGRES_URL'] || :test_postgresql
+        store :untyped_settings, accessors: [:title]
+        typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
+          define_store_columns(s)
+        end
       end
     end
 
@@ -152,12 +157,12 @@ if ENV['POSTGRES']
 end
 
 class Sqlite3RegularARModel < ActiveRecord::Base
-  establish_connection 'test_sqlite3'
+  establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
 end
 
 class YamlTypedStoreModel < ActiveRecord::Base
-  establish_connection 'test_sqlite3'
+  establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
   typed_store :settings do |s|
     define_store_columns(s)
@@ -165,7 +170,7 @@ class YamlTypedStoreModel < ActiveRecord::Base
 end
 
 class JsonTypedStoreModel < ActiveRecord::Base
-  establish_connection 'test_sqlite3'
+  establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(JSON) do |s|
     define_store_columns(s)
@@ -187,7 +192,7 @@ module MarshalCoder
 end
 
 class MarshalTypedStoreModel < ActiveRecord::Base
-  establish_connection 'test_sqlite3'
+  establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
   typed_store :settings, coder: ColumnCoder.new(MarshalCoder) do |s|
     define_store_columns(s)
