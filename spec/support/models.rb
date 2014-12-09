@@ -5,6 +5,7 @@ require 'yaml'
 AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
 AR_4_0 = Gem::Version.new('4.0')
 AR_4_1 = Gem::Version.new('4.1.0.beta')
+AR_4_2 = Gem::Version.new('4.2.0-rc1')
 
 ActiveRecord::Base.time_zone_aware_attributes = ENV['TIMEZONE_AWARE'] != '0'
 ActiveRecord::Base.configurations = {

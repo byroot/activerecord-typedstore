@@ -58,11 +58,20 @@ shared_examples 'any model' do
       }.to change { model.age_changed? }.from(true).to(false)
     end
 
-    it 'can be reset individually' do
-      model.age = 24
-      expect {
-        model.reset_age!
-      }.to change { model.age }.from(24).to(12)
+    if AR_VERSION >= AR_4_2
+      it 'can be restored individually' do
+        model.age = 24
+        expect {
+          model.restore_age!
+        }.to change { model.age }.from(24).to(12)
+      end
+    else
+      it 'can be reset individually' do
+        model.age = 24
+        expect {
+          model.reset_age!
+        }.to change { model.age }.from(24).to(12)
+      end
     end
 
     it 'does not dirty track assigning the same boolean' do
