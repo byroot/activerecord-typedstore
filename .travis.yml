@@ -27,3 +27,8 @@ before_script:
 matrix:
   allow_failures:
     - gemfile: gemfiles/Gemfile.ar-edge
+  exclude:
+   - gemfile: gemfiles/Gemfile.ar-edge
+     rvm: 1.9
+   - gemfile: gemfiles/Gemfile.ar-edge
+     rvm: 2.0
