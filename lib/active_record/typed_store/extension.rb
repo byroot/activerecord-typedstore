@@ -126,10 +126,20 @@ module ActiveRecord::TypedStore
         return if match.target == 'attribute_before_type_cast'.freeze && store_attribute_method?(match.attr_name)
         match
       end
+
+      def coder_for(attr_name)
+        column = self.class.columns_hash[attr_name]
+        return unless column.cast_type.is_a?(::ActiveRecord::Type::Serialized)
+        column.cast_type.coder
+      end
+    else
+      def coder_for(attr_name)
+        self.class.serialized_attributes[attr_name]
+      end
     end
 
     def write_attribute(attr_name, value)
-      if coder = self.class.serialized_attributes[attr_name]
+      if coder = coder_for(attr_name)
         if coder.is_a?(ActiveRecord::TypedStore::Coder)
           return super(attr_name, coder.as_indifferent_hash(value))
         end
