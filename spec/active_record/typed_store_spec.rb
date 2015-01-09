@@ -603,18 +603,18 @@ shared_examples 'a db backed model' do
     }.to raise_error(ActiveRecord::StatementInvalid)
   end
 
-  describe "using write_attribute(attr_name, value)" do
+  describe "#write_attribute" do
 
     it "attr_name can be a string" do
       value = 12
-      model.send(:write_attribute, "age", value)
-      expect(model.age).to eq(value)
+      model.send(:write_attribute, 'age', value)
+      expect(model.age).to be == value
     end
 
     it "attr_name can be a symbol" do
       value = 12
       model.send(:write_attribute, :age, value)
-      expect(model.age).to eq(value)
+      expect(model.age).to be == value
     end
 
   end
