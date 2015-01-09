@@ -603,6 +603,22 @@ shared_examples 'a db backed model' do
     }.to raise_error(ActiveRecord::StatementInvalid)
   end
 
+  describe "using write_attribute(attr_name, value)" do
+
+    it "attr_name can be a string" do
+      value = 12
+      model.send(:write_attribute, "age", value)
+      expect(model.age).to eq(value)
+    end
+
+    it "attr_name can be a symbol" do
+      value = 12
+      model.send(:write_attribute, :age, value)
+      expect(model.age).to eq(value)
+    end
+
+  end
+
 end
 
 shared_examples 'a model supporting arrays' do |pg_native=false|
