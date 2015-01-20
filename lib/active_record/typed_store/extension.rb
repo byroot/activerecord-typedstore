@@ -5,8 +5,8 @@ require 'active_record/typed_store/typed_hash'
 module ActiveRecord::TypedStore
   AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
   IS_AR_3_2 = AR_VERSION < Gem::Version.new('4.0')
-  IS_AR_4_1 = AR_VERSION >= Gem::Version.new('4.1') && AR_VERSION < Gem::Version.new('4.2.0-rc1')
-  IS_AR_4_2 = AR_VERSION >= Gem::Version.new('4.2.0-rc1')
+  IS_AR_4_1 = AR_VERSION >= Gem::Version.new('4.1') && AR_VERSION < Gem::Version.new('4.2.0')
+  IS_AR_4_2 = AR_VERSION >= Gem::Version.new('4.2.0')
 
   module Extension
     extend ActiveSupport::Concern
