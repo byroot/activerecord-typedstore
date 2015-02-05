@@ -129,7 +129,7 @@ module ActiveRecord::TypedStore
 
       def coder_for(attr_name)
         column = self.class.columns_hash[attr_name.to_s]
-        return unless column.cast_type.is_a?(::ActiveRecord::Type::Serialized)
+        return unless column && column.cast_type.is_a?(::ActiveRecord::Type::Serialized)
         column.cast_type.coder
       end
     else
