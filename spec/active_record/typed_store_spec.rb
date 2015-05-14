@@ -37,7 +37,7 @@ shared_examples 'any model' do
     it 'track changed attributes' do
       expect {
         model.age = 24
-      }.to change { model.age_changed? }.from(false).to(true)
+      }.to change { !!model.age_changed? }.from(false).to(true)
     end
 
     it 'keep track of what the attribute was' do
@@ -55,7 +55,7 @@ shared_examples 'any model' do
       model.age = 24
       expect {
         model.save
-      }.to change { model.age_changed? }.from(true).to(false)
+      }.to change { !!model.age_changed? }.from(true).to(false)
     end
 
     if AR_VERSION >= AR_4_2
@@ -85,7 +85,7 @@ shared_examples 'any model' do
       expect(model.enabled).to be true
       expect {
         model.enabled = false
-      }.to change { model.enabled_changed? }.from(false).to(true)
+      }.to change { !!model.enabled_changed? }.from(false).to(true)
     end
 
     it 'does not dirty track assigning the same boolean even if it is a string' do
@@ -98,13 +98,13 @@ shared_examples 'any model' do
     it 'dirty tracks when the string changes' do
       expect {
         model.name = "Smith"
-      }.to change { model.name_changed? }.from(false).to(true)
+      }.to change { !!model.name_changed? }.from(false).to(true)
     end
 
     it 'does not dirty track assigning the same string' do
       expect {
         model.name = ""
-      }.to_not change { model.name_changed? }
+      }.to_not change { !!model.name_changed? }
     end
   end
 
