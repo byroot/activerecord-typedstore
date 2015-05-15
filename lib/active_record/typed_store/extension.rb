@@ -47,7 +47,9 @@ module ActiveRecord::TypedStore
       def create_coder(store_attribute, columns)
         store_class = TypedHash.create(columns)
         const_set("#{store_attribute}_hash".camelize, store_class)
-        Coder.create(store_class)
+        coder_class = Coder.create(store_class)
+        const_set("#{store_attribute}_coder".camelize, coder_class)
+        coder_class
       end
 
       def register_typed_store_columns(store_attribute, columns)

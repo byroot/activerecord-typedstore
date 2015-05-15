@@ -14,6 +14,14 @@ shared_examples 'any model' do
 
   end
 
+  describe 'Marshal.dump' do
+
+    it 'dumps the model' do
+      Marshal.dump(model)
+    end
+
+  end
+
   describe 'regular AR::Store' do
 
     it 'save attributes as usual' do
