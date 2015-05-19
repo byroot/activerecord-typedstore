@@ -43,10 +43,6 @@ module ActiveRecord::TypedStore
         return value.to_s unless value.nil? && (null || array)
       end
 
-      if IS_AR_3_2 && type == :datetime && value.is_a?(DateTime)
-        return super(value.iso8601)
-      end
-
       defined?(super) ? super(value) : type_cast_from_database(value)
     end
 

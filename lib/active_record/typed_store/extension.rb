@@ -3,11 +3,6 @@ require 'active_record/typed_store/dsl'
 require 'active_record/typed_store/typed_hash'
 
 module ActiveRecord::TypedStore
-  AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
-  IS_AR_3_2 = AR_VERSION < Gem::Version.new('4.0')
-  IS_AR_4_1 = AR_VERSION >= Gem::Version.new('4.1') && AR_VERSION < Gem::Version.new('4.2.0')
-  IS_AR_4_2 = AR_VERSION >= Gem::Version.new('4.2.0')
-
   module Extension
     extend ActiveSupport::Concern
 
@@ -93,11 +88,9 @@ module ActiveRecord::TypedStore
 
     protected
 
-    if IS_AR_4_2
       def attribute_method?(attr_name)
         super || store_attribute_method?(attr_name)
       end
-    end
 
     def store_attribute_method?(attr_name)
       return unless self.class.typed_store_attributes
@@ -119,7 +112,6 @@ module ActiveRecord::TypedStore
 
     private
 
-    if IS_AR_4_2
       def match_attribute_method?(method_name)
         match = super
         return unless match
@@ -132,11 +124,6 @@ module ActiveRecord::TypedStore
         return unless column && column.cast_type.is_a?(::ActiveRecord::Type::Serialized)
         column.cast_type.coder
       end
-    else
-      def coder_for(attr_name)
-        self.class.serialized_attributes[attr_name]
-      end
-    end
 
     def write_attribute(attr_name, value)
       if coder = coder_for(attr_name)
@@ -181,11 +168,7 @@ module ActiveRecord::TypedStore
 
   end
 
-  require 'active_record/typed_store/ar_32_fallbacks' if IS_AR_3_2
   require 'active_record/typed_store/coder'
 
-  unless IS_AR_3_2
-    ActiveModel::AttributeMethods::ClassMethods.send(:alias_method, :define_virtual_attribute_method, :define_attribute_method)
-  end
-
+  ActiveModel::AttributeMethods::ClassMethods.send(:alias_method, :define_virtual_attribute_method, :define_attribute_method)
 end
