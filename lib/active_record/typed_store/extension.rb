@@ -1,6 +1,7 @@
 require 'active_record/typed_store/column'
 require 'active_record/typed_store/dsl'
 require 'active_record/typed_store/typed_hash'
+require 'active_record/typed_store/coder'
 
 module ActiveRecord::TypedStore
   module Extension
@@ -9,32 +10,55 @@ module ActiveRecord::TypedStore
     included do
       class_attribute :typed_stores, instance_accessor: false
       class_attribute :typed_store_attributes, instance_accessor: false
+
+      self.typed_stores = {}
+      self.typed_store_attributes = {}
     end
 
     module ClassMethods
 
-      def typed_store(store_attribute, options={}, &block)
-        dsl = DSL.new(options.fetch(:accessors, true), &block)
+      def typed_store(store_attribute, options = {}, &block)
+        @dsl = DSL.new(options.fetch(:accessors, true), &block)
 
-        store store_attribute, accessors: dsl.accessors,
-          coder: create_coder(store_attribute, dsl.columns).new(options[:coder])
+        serialize store_attribute, create_coder(store_attribute, @dsl.columns).new(options[:coder])
+        typed_store_accessor(store_attribute, @dsl.accessors)
 
-        register_typed_store_columns(store_attribute, dsl.columns)
-        super(store_attribute, dsl) if defined?(super)
+        register_typed_store_columns(store_attribute, @dsl.columns)
 
-        dsl.accessors.each { |c| define_store_attribute_queries(store_attribute, c) }
+        @dsl
+      end
 
-        dsl
+      def typed_store_accessor(store_attribute, *keys)
+        keys = keys.flatten
+
+        _store_accessors_module.module_eval do
+          keys.each do |key|
+            define_method("#{key}=") do |value|
+              write_typed_store_attribute(store_attribute, key, value)
+            end
+
+            define_method(key) do
+              read_typed_store_attribute(store_attribute, key)
+            end
+
+          end
+        end
+
+        self.local_stored_attributes ||= {}
+        self.local_stored_attributes[store_attribute] ||= []
+        self.local_stored_attributes[store_attribute] |= keys
+      end
+
+      def columns
+        @columns ||= super + add_user_provided_columns(@dsl.columns.select(&:accessor?))
       end
 
       def define_attribute_methods
         super
-        define_typed_store_attribute_methods
-      end
-
-      def undefine_attribute_methods # :nodoc:
-        super if @typed_store_attribute_methods_generated
-        @typed_store_attribute_methods_generated = false
+        store_accessors.each do |attribute|
+          undefine_before_type_cast_method(attribute)
+        end
+        attribute_method_matchers_cache.clear
       end
 
       private
@@ -46,20 +70,9 @@ module ActiveRecord::TypedStore
       end
 
       def register_typed_store_columns(store_attribute, columns)
-        self.typed_stores ||= {}
-        self.typed_store_attributes ||= {}
         typed_stores[store_attribute] ||= {}
         typed_stores[store_attribute].merge!(columns.index_by(&:name))
         typed_store_attributes.merge!(columns.index_by { |c| c.name.to_s })
-      end
-
-      def define_typed_store_attribute_methods
-        return if @typed_store_attribute_methods_generated
-        store_accessors.each do |attribute|
-          define_virtual_attribute_method(attribute)
-          undefine_before_type_cast_method(attribute)
-        end
-        @typed_store_attribute_methods_generated = true
       end
 
       def undefine_before_type_cast_method(attribute)
@@ -72,25 +85,13 @@ module ActiveRecord::TypedStore
         return [] unless typed_store_attributes
         typed_store_attributes.values.select(&:accessor?).map(&:name).map(&:to_s)
       end
-
-      def create_time_zone_conversion_attribute?(name, column)
-        column ||= typed_store_attributes[name]
-        super(name, column)
-      end
-
-      def define_store_attribute_queries(store_attribute, column_name)
-        define_method("#{column_name}?") do
-          query_store_attribute(store_attribute, column_name)
-        end
-      end
-
     end
 
     protected
 
-      def attribute_method?(attr_name)
-        super || store_attribute_method?(attr_name)
-      end
+    def attribute_method?(attr_name)
+      super || store_attribute_method?(attr_name)
+    end
 
     def store_attribute_method?(attr_name)
       return unless self.class.typed_store_attributes
@@ -98,45 +99,35 @@ module ActiveRecord::TypedStore
       store_attribute && store_attribute.accessor?
     end
 
-    def write_store_attribute(store_attribute, key, value)
+    def read_typed_store_attribute(store_attribute, key)
+      accessor = store_accessor_for(store_attribute)
+      accessor.read(self, store_attribute, key)
+      #read_attribute(key)
+    end
+
+    def write_typed_store_attribute(store_attribute, key, value)
       column = store_column(store_attribute, key)
       if column.try(:type) == :datetime && self.class.time_zone_aware_attributes && value.respond_to?(:in_time_zone)
         value = value.in_time_zone
       end
 
-      previous_value = read_store_attribute(store_attribute, key)
-      new_value = column ? column.type_cast(value) : value
-      attribute_will_change!(key.to_s) if new_value != previous_value
-      super
+      write_store_attribute(store_attribute, key, value)
+      write_attribute(key, value)
     end
 
     private
 
-      def match_attribute_method?(method_name)
-        match = super
-        return unless match
-        return if match.target == 'attribute_before_type_cast'.freeze && store_attribute_method?(match.attr_name)
-        match
-      end
-
-      def coder_for(attr_name)
-        column = self.class.columns_hash[attr_name.to_s]
-        return unless column && column.cast_type.is_a?(::ActiveRecord::Type::Serialized)
-        column.cast_type.coder
-      end
-
-    def write_attribute(attr_name, value)
-      if coder = coder_for(attr_name)
-        if coder.is_a?(ActiveRecord::TypedStore::Coder)
-          return super(attr_name, coder.as_indifferent_hash(value))
-        end
-      end
-
-      super
+    def match_attribute_method?(method_name)
+      match = super
+      return unless match
+      return if match.target == 'attribute_before_type_cast'.freeze && store_attribute_method?(match.attr_name)
+      match
     end
 
-    def keys_for_partial_write
-      super & self.class.column_names
+    def coder_for(attr_name)
+      column = self.class.columns_hash[attr_name.to_s]
+      return unless column && column.cast_type.is_a?(::ActiveRecord::Type::Serialized)
+      column.cast_type.coder
     end
 
     def store_column(store_attribute, key)
@@ -148,27 +139,5 @@ module ActiveRecord::TypedStore
       self.class.typed_stores.try(:[], store_attribute)
     end
 
-    # heavilly inspired from ActiveRecord::Base#query_attribute
-    def query_store_attribute(store_attribute, key)
-      value = read_store_attribute(store_attribute, key)
-
-      case value
-      when true        then true
-      when false, nil  then false
-      else
-        column = store_column(store_attribute, key)
-
-        if column.number?
-          !value.zero?
-        else
-          !value.blank?
-        end
-      end
-    end
-
   end
-
-  require 'active_record/typed_store/coder'
-
-  ActiveModel::AttributeMethods::ClassMethods.send(:alias_method, :define_virtual_attribute_method, :define_attribute_method)
 end

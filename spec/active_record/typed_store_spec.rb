@@ -69,7 +69,7 @@ shared_examples 'any model' do
       expect(model.enabled).to be true
       expect {
         model.enabled = true
-      }.to_not change { model.enabled_changed? }
+      }.to_not change { !!model.enabled_changed? }
     end
 
     it 'dirty tracks when the boolean changes' do
@@ -83,7 +83,7 @@ shared_examples 'any model' do
       expect(model.enabled).to be true
       expect {
         model.enabled = "true"
-      }.to_not change { model.enabled_changed? }
+      }.to_not change { !!model.enabled_changed? }
     end
 
     it 'dirty tracks when the string changes' do
@@ -645,10 +645,11 @@ end
 end
 
 
-describe Sqlite3RegularARModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a db backed model'
-end
+#describe Sqlite3RegularARModel do
+#  puts "Sqlite3RegularARModel"
+#  it_should_behave_like 'any model'
+#  it_should_behave_like 'a db backed model'
+#end
 
 describe MysqlRegularARModel do
   it_should_behave_like 'any model'
@@ -672,19 +673,22 @@ describe PostgresJsonTypedStoreModel do
 end if defined?(PostgresJsonTypedStoreModel)
 
 describe YamlTypedStoreModel do
+  puts "YamlTypedStoreModel"
   it_should_behave_like 'any model'
   it_should_behave_like 'a store'
   it_should_behave_like 'a model supporting arrays'
 end
 
-describe JsonTypedStoreModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a store'
-  it_should_behave_like 'a model supporting arrays'
-end
-
-describe MarshalTypedStoreModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a store'
-  it_should_behave_like 'a model supporting arrays'
-end
+#describe JsonTypedStoreModel do
+#  puts "JsonTypedStoreModel"
+#  it_should_behave_like 'any model'
+#  it_should_behave_like 'a store'
+#  it_should_behave_like 'a model supporting arrays'
+#end
+#
+#describe MarshalTypedStoreModel do
+#  puts "MarshalTypedStoreModel"
+#  it_should_behave_like 'any model'
+#  it_should_behave_like 'a store'
+#  it_should_behave_like 'a model supporting arrays'
+#end

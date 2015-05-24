@@ -4,7 +4,7 @@ module ActiveRecord::TypedStore
     attr_reader :array, :blank
 
     def initialize(name, type, options={})
-      @name = name
+      @name = name.to_s
       @type = type
       @array = options.fetch(:array, false)
       @default = extract_default(options.fetch(:default, nil))
