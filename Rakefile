@@ -5,6 +5,20 @@ RSpec::Core::RakeTask.new(:spec)
 
 task :default => :spec
 
+namespace :gemfiles do
+  task :update do
+    Dir[File.expand_path('gemfiles/*')].each do |file|
+      next if file.end_with?('.lock')
+      command = %W{
+        BUNDLE_GEMFILE='#{file}'
+        bundle update
+      }.join(' ')
+      puts command
+      system(command)
+    end
+  end
+end
+
 namespace :spec do
   task :all do
     %w(3.2 4.0 edge).each do |ar_version|
@@ -17,7 +31,7 @@ namespace :spec do
           rspec
         }.join(' ')
         puts command
-        puts `#{command}`
+        system(command)
       end
     end
   end
