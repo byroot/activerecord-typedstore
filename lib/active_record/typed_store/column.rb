@@ -11,6 +11,9 @@ module ActiveRecord::TypedStore
       @null = options.fetch(:null, true)
       @blank = options.fetch(:blank, true)
       @accessor = options.fetch(:accessor, true)
+      @scale = options[:scale]
+      @limit = options[:limit]
+      @precision = options[:precision]
     end
 
     def accessor?
@@ -74,8 +77,8 @@ module ActiveRecord::TypedStore
         any: ::ActiveRecord::Type::Value,
       }
 
-      def initialize(_, type, *)
-        @cast_type = CAST_TYPES.fetch(type).new
+      def initialize(_, type, options = {})
+        @cast_type = CAST_TYPES.fetch(type).new(options.slice(:limit, :scale, :precision))
         super
       end
     end
