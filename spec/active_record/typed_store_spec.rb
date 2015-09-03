@@ -66,27 +66,18 @@ shared_examples 'any model' do
       }.to change { !!model.age_changed? }.from(true).to(false)
     end
 
-    if AR_VERSION >= AR_4_2
-      it 'can be restored individually' do
-        model.age = 24
-        expect {
-          model.restore_age!
-        }.to change { model.age }.from(24).to(12)
-      end
-    else
-      it 'can be reset individually' do
-        model.age = 24
-        expect {
-          model.reset_age!
-        }.to change { model.age }.from(24).to(12)
-      end
+    it 'can be restored individually' do
+      model.age = 24
+      expect {
+        model.restore_age!
+      }.to change { model.age }.from(24).to(12)
     end
 
     it 'does not dirty track assigning the same boolean' do
       expect(model.enabled).to be true
       expect {
         model.enabled = true
-      }.to_not change { model.enabled_changed? }
+      }.to_not change { !!model.enabled_changed? }
     end
 
     it 'dirty tracks when the boolean changes' do
@@ -100,7 +91,7 @@ shared_examples 'any model' do
       expect(model.enabled).to be true
       expect {
         model.enabled = "true"
-      }.to_not change { model.enabled_changed? }
+      }.to_not change { !!model.enabled_changed? }
     end
 
     it 'dirty tracks when the string changes' do
@@ -418,59 +409,32 @@ shared_examples 'any model' do
 
     context "with ActiveRecord #{ActiveRecord::VERSION::STRING}" do
 
-      if AR_VERSION < AR_4_0
+      it 'has the defined default as initial value' do
+        model.save
+        expect(model.reload.published_at).to be == datetime
+      end
 
-        it 'has the defined default as initial value' do
-          model.save
-          expect(model.published_at).to be == time
-        end
+      it 'retreive a DateTime instance' do
+        model.update_attributes(published_at: datetime)
+        expect(model.reload.published_at).to be == datetime
+      end
+
+      if ActiveRecord::Base.time_zone_aware_attributes
 
         it 'properly cast assigned value to time' do
           model.remind_at = datetime_string
           expect(model.remind_at).to be == time
         end
 
-        it 'properly cast assigned value to time on save' do
-          model.remind_at = datetime_string
-          model.save
-          model.reload
-          expect(model.remind_at).to be == time
-        end
-
-        it 'retreive a Time instance' do
-          model.update_attributes(published_at: datetime)
-          expect(model.reload.published_at).to be == time
-        end
-
       else
 
-        it 'has the defined default as initial value' do
-          model.save
-          expect(model.reload.published_at).to be == datetime
-        end
-
-        it 'retreive a DateTime instance' do
-          model.update_attributes(published_at: datetime)
-          expect(model.reload.published_at).to be == datetime
-        end
-
-        if ActiveRecord::Base.time_zone_aware_attributes
-
-          it 'properly cast assigned value to time' do
-            model.remind_at = datetime_string
-            expect(model.remind_at).to be == time
-          end
-
-        else
-
-          it 'properly cast assigned value to datetime' do
-            model.remind_at = datetime_string
-            expect(model.remind_at).to be == datetime
-          end
-
+        it 'properly cast assigned value to datetime' do
+          model.remind_at = datetime_string
+          expect(model.remind_at).to be == datetime
         end
 
       end
+
 
     end
 
@@ -499,105 +463,105 @@ end
 
 shared_examples 'a store' do |retain_type=true|
 
-  let(:model) { described_class.new }
+let(:model) { described_class.new }
 
-  describe 'assigning the store' do
+describe 'assigning the store' do
 
-    it 'coerce it to the proper typed hash' do
-      expect {
-        model.settings = {}
-      }.to_not change { model.settings.class }
+  it 'coerce it to the proper typed hash' do
+    expect {
+      model.settings = {}
+    }.to_not change { model.settings.class }
+  end
+
+  it 'still handle default values' do
+    expect {
+      model.settings = {}
+    }.to_not change { model.settings['nickname'] }
+  end
+
+end
+
+describe 'attributes' do
+
+  it 'retrieve default if assigned nil and null not allowed' do
+    model.update_attributes(age: nil)
+    expect(model.age).to be == 12
+  end
+
+  context 'when column cannot be blank' do
+
+    it 'retreive default if not persisted yet, and nothing was assigned' do
+      expect(model.nickname).to be == 'Please enter your nickname'
     end
 
-    it 'still handle default values' do
-      expect {
-        model.settings = {}
-      }.to_not change { model.settings['nickname'] }
+    it 'retreive default if assigned a blank value' do
+      model.update_attributes(nickname: '')
+      expect(model.nickname).to be == 'Please enter your nickname'
+      expect(model.reload.nickname).to be == 'Please enter your nickname'
     end
 
   end
 
-  describe 'attributes' do
-
-    it 'retrieve default if assigned nil and null not allowed' do
-      model.update_attributes(age: nil)
-      expect(model.age).to be == 12
-    end
-
-    context 'when column cannot be blank' do
-
-      it 'retreive default if not persisted yet, and nothing was assigned' do
-        expect(model.nickname).to be == 'Please enter your nickname'
-      end
-
-      it 'retreive default if assigned a blank value' do
-        model.update_attributes(nickname: '')
-        expect(model.nickname).to be == 'Please enter your nickname'
-        expect(model.reload.nickname).to be == 'Please enter your nickname'
-      end
-
-    end
-
-    it 'do not respond to <attribute>_before_type_cast' do
-      expect(model).to_not respond_to :nickname_before_type_cast
-    end
-
+  it 'do not respond to <attribute>_before_type_cast' do
+    expect(model).to_not respond_to :nickname_before_type_cast
   end
 
-  describe 'attributes without accessors' do
+end
 
-    it 'cannot be accessed as a model attribute' do
-      expect(model).to_not respond_to :country
-      expect(model).to_not respond_to :country=
-    end
+describe 'attributes without accessors' do
 
-    it 'cannot be queried' do
-      expect(model).to_not respond_to :country?
-    end
-
-    it 'cannot be reset' do
-      expect(model).to_not respond_to :reset_country!
-    end
-
-    it 'still has casting a default handling' do
-      expect(model.settings[:country]).to be == 'Canada'
-    end
-
+  it 'cannot be accessed as a model attribute' do
+    expect(model).to_not respond_to :country
+    expect(model).to_not respond_to :country=
   end
 
-  describe '`any` attributes' do
-
-    it 'accept any type' do
-      model.update_attributes(author: 'George')
-      expect(model.reload.author).to be == 'George'
-
-      model.update_attributes(author: 42)
-      expect(model.reload.author).to be == (retain_type ? 42 : '42')
-    end
-
-    it 'still handle default' do
-      model.update_attributes(source: '')
-      expect(model.reload.source).to be == 'web'
-    end
-
+  it 'cannot be queried' do
+    expect(model).to_not respond_to :country?
   end
 
-  describe 'updated defaults' do
-
-    it 'update defaults for outdated serials' do
-      model.save!
-      expect(model.settings[:brand_new]).to be_nil
-      new_column = ActiveRecord::TypedStore::Column.new(:brand_new, :boolean, null: false, default: true)
-      begin
-        model.class::SettingsHash.columns['brand_new'] = new_column
-        model.reload
-        expect(model.settings[:brand_new]).to be true
-      ensure
-        model.class::SettingsHash.columns.delete('brand_new')
-      end
-    end
-
+  it 'cannot be reset' do
+    expect(model).to_not respond_to :reset_country!
   end
+
+  it 'still has casting a default handling' do
+    expect(model.settings[:country]).to be == 'Canada'
+  end
+
+end
+
+describe '`any` attributes' do
+
+  it 'accept any type' do
+    model.update_attributes(author: 'George')
+    expect(model.reload.author).to be == 'George'
+
+    model.update_attributes(author: 42)
+    expect(model.reload.author).to be == (retain_type ? 42 : '42')
+  end
+
+  it 'still handle default' do
+    model.update_attributes(source: '')
+    expect(model.reload.source).to be == 'web'
+  end
+
+end
+
+describe 'updated defaults' do
+
+  it 'update defaults for outdated serials' do
+    model.save!
+    expect(model.settings[:brand_new]).to be_nil
+    new_column = ActiveRecord::TypedStore::Column.new(:brand_new, :boolean, null: false, default: true)
+    begin
+      model.class::SettingsHash.columns['brand_new'] = new_column
+      model.reload
+      expect(model.settings[:brand_new]).to be true
+    ensure
+      model.class::SettingsHash.columns.delete('brand_new')
+    end
+  end
+
+end
 
 end
 
@@ -631,78 +595,69 @@ end
 
 shared_examples 'a model supporting arrays' do |pg_native=false|
 
-  let(:model) { described_class.new }
+let(:model) { described_class.new }
 
-  it 'retrieve an array of values' do
-    model.update_attributes(grades: [1, 2, 3, 4])
-    expect(model.reload.grades).to be == [1, 2, 3, 4]
-  end
+it 'retrieve an array of values' do
+  model.update_attributes(grades: [1, 2, 3, 4])
+  expect(model.reload.grades).to be == [1, 2, 3, 4]
+end
 
-  it 'cast values inside the array (integer)' do
-    pending('ActiveRecord bug: https://github.com/rails/rails/pull/11245') if pg_native && AR_VERSION < AR_4_2
-    model.update_attributes(grades: ['1', 2, 3.4])
-    expect(model.reload.grades).to be == [1, 2, 3]
-  end
+it 'cast values inside the array (integer)' do
+  model.update_attributes(grades: ['1', 2, 3.4])
+  expect(model.reload.grades).to be == [1, 2, 3]
+end
 
-  it 'cast values inside the array (string)' do
-    model.update_attributes(tags: [1, 2.3])
-    expect(model.reload.tags).to be == %w(1 2.3)
-  end
+it 'cast values inside the array (string)' do
+  model.update_attributes(tags: [1, 2.3])
+  expect(model.reload.tags).to be == %w(1 2.3)
+end
 
-  it 'accept nil inside array even if collumn is non nullable' do
-    model.update_attributes(tags: [1, nil])
-    expect(model.reload.tags).to be == ['1', nil]
-  end
+it 'accept nil inside array even if collumn is non nullable' do
+  model.update_attributes(tags: [1, nil])
+  expect(model.reload.tags).to be == ['1', nil]
+end
 
-  if !pg_native || AR_VERSION < AR_4_2
-    it 'convert non array value as empty array' do
-      model.update_attributes(grades: 'foo')
-      expect(model.reload.grades).to be == []
-    end
-  end
+it 'accept multidimensianl arrays' do
+  model.update_attributes(grades: [[1, 2], [3, 4]])
+  expect(model.reload.grades).to be == [[1, 2], [3, 4]]
+end
 
-  if !pg_native || AR_VERSION >= AR_4_1
-    it 'accept multidimensianl arrays' do
-      model.update_attributes(grades: [[1, 2], [3, 4]])
-      expect(model.reload.grades).to be == [[1, 2], [3, 4]]
-    end
-  end
+if pg_native
 
-  if pg_native
-
-    it 'raise on non rectangular multidimensianl arrays' do
-      expect{
-        model.update_attributes(grades: [[1, 2], [3, 4, 5]])
-      }.to raise_error(ActiveRecord::StatementInvalid)
-    end
-
-    it 'raise on non nil assignation if column is non nullable' do
-      expect{
-        model.update_attributes(tags: nil)
-      }.to raise_error(ActiveRecord::StatementInvalid)
-    end
-
-  else
-
-    it 'accept non rectangular multidimensianl arrays' do
+  it 'raise on non rectangular multidimensianl arrays' do
+    expect{
       model.update_attributes(grades: [[1, 2], [3, 4, 5]])
-      expect(model.reload.grades).to be == [[1, 2], [3, 4, 5]]
-    end
+    }.to raise_error(ActiveRecord::StatementInvalid)
+  end
 
-    it 'retreive default if assigned null' do
+  it 'raise on non nil assignation if column is non nullable' do
+    expect{
       model.update_attributes(tags: nil)
-      expect(model.reload.tags).to be == []
-    end
+    }.to raise_error(ActiveRecord::StatementInvalid)
+  end
 
+else
+
+  it 'accept non rectangular multidimensianl arrays' do
+    model.update_attributes(grades: [[1, 2], [3, 4, 5]])
+    expect(model.reload.grades).to be == [[1, 2], [3, 4, 5]]
+  end
+
+  it 'retreive default if assigned null' do
+    model.update_attributes(tags: nil)
+    expect(model.reload.tags).to be == []
   end
 
 end
 
-
-describe Sqlite3RegularARModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a db backed model'
 end
+
+
+#describe Sqlite3RegularARModel do
+#  puts "Sqlite3RegularARModel"
+#  it_should_behave_like 'any model'
+#  it_should_behave_like 'a db backed model'
+#end
 
 describe MysqlRegularARModel do
   it_should_behave_like 'any model'
@@ -712,16 +667,11 @@ end if defined?(MysqlRegularARModel)
 describe PostgresqlRegularARModel do
   it_should_behave_like 'any model'
   it_should_behave_like 'a db backed model'
-  it_should_behave_like 'a model supporting arrays', true if AR_VERSION >= AR_4_0
+  it_should_behave_like 'a model supporting arrays', true
 end if defined?(PostgresqlRegularARModel)
 
 describe PostgresHstoreTypedStoreModel do
-  if AR_VERSION >= AR_4_1
-    pending('TODO: Rails edge HStore compatibiliy')
-  else
-    it_should_behave_like 'any model'
-    it_should_behave_like 'a store', false
-  end
+  pending('TODO: Rails edge HStore compatibiliy')
 end if defined?(PostgresHstoreTypedStoreModel)
 
 describe PostgresJsonTypedStoreModel do
@@ -731,19 +681,22 @@ describe PostgresJsonTypedStoreModel do
 end if defined?(PostgresJsonTypedStoreModel)
 
 describe YamlTypedStoreModel do
+  puts "YamlTypedStoreModel"
   it_should_behave_like 'any model'
   it_should_behave_like 'a store'
   it_should_behave_like 'a model supporting arrays'
 end
 
-describe JsonTypedStoreModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a store'
-  it_should_behave_like 'a model supporting arrays'
-end
-
-describe MarshalTypedStoreModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a store'
-  it_should_behave_like 'a model supporting arrays'
-end
+#describe JsonTypedStoreModel do
+#  puts "JsonTypedStoreModel"
+#  it_should_behave_like 'any model'
+#  it_should_behave_like 'a store'
+#  it_should_behave_like 'a model supporting arrays'
+#end
+#
+#describe MarshalTypedStoreModel do
+#  puts "MarshalTypedStoreModel"
+#  it_should_behave_like 'any model'
+#  it_should_behave_like 'a store'
+#  it_should_behave_like 'a model supporting arrays'
+#end

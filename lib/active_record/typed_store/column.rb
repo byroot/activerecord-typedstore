@@ -4,7 +4,7 @@ module ActiveRecord::TypedStore
     attr_reader :array, :blank
 
     def initialize(name, type, options={})
-      @name = name
+      @name = name.to_s
       @type = type
       @array = options.fetch(:array, false)
       @default = extract_default(options.fetch(:default, nil))
@@ -44,10 +44,6 @@ module ActiveRecord::TypedStore
 
       if type == :string || type == :text
         return value.to_s unless value.nil? && (null || array)
-      end
-
-      if IS_AR_3_2 && type == :datetime && value.is_a?(DateTime)
-        return super(value.iso8601)
       end
 
       defined?(super) ? super(value) : type_cast_from_database(value)
