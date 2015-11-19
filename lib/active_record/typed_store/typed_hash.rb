@@ -14,10 +14,13 @@ module ActiveRecord::TypedStore
 
     end
 
-    def initialize(constructor={})
+    def initialize(constructor={}, types = {})
       super()
-      update(defaults_hash)
-      update(constructor) if constructor.is_a?(Hash)
+      @types = types
+      constructor = values.map do |key, value|
+        [key, types[key].deserialize(value)]
+      end.to_h
+      update(constructor)
     end
 
     def []=(key, value)
@@ -25,39 +28,23 @@ module ActiveRecord::TypedStore
     end
     alias_method :store, :[]=
 
-    def merge!(other_hash)
-      other_hash.each_pair do |key, value|
-        if block_given? && key?(key)
-          value = yield(convert_key(key), self[key], value)
-        end
-        self[convert_key(key)] = convert_value(value)
-      end
-      self
-    end
-    alias_method :update, :merge!
+    # def merge!(other_hash)
+    #   other_hash.each_pair do |key, value|
+    #     if block_given? && key?(key)
+    #       value = yield(convert_key(key), self[key], value)
+    #     end
+    #     self[convert_key(key)] = convert_value(value)
+    #   end
+    #   self
+    # end
+    # alias_method :update, :merge!
 
     private
 
-    delegate :columns, to: 'self.class'
-
-    def defaults_hash
-      Hash[self.class.columns.values.select(&:has_default?).map { |c| [c.name, c.default] }]
-    end
+    attr_reader :types
 
     def cast_value(key, value)
-      key = convert_key(key)
-      column = columns[key]
-      return value unless column
-
-      casted_value = column.cast(value)
-
-      if casted_value.nil? && !column.null && column.has_default?
-        return column.default
-      end
-
-      casted_value
+      types[key].cast(value)
     end
-
   end
-
 end

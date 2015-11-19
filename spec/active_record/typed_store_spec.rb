@@ -736,14 +736,14 @@ describe YamlTypedStoreModel do
   it_should_behave_like 'a model supporting arrays'
 end
 
-describe JsonTypedStoreModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a store'
-  it_should_behave_like 'a model supporting arrays'
-end
+# describe JsonTypedStoreModel do
+#   it_should_behave_like 'any model'
+#   it_should_behave_like 'a store'
+#   it_should_behave_like 'a model supporting arrays'
+# end
 
-describe MarshalTypedStoreModel do
-  it_should_behave_like 'any model'
-  it_should_behave_like 'a store'
-  it_should_behave_like 'a model supporting arrays'
-end
+# describe MarshalTypedStoreModel do
+#   it_should_behave_like 'any model'
+#   it_should_behave_like 'a store'
+#   it_should_behave_like 'a model supporting arrays'
+# end

@@ -40,7 +40,7 @@ def define_columns(t)
   t.decimal :shipping_cost, precision: 16, scale: 2
 
   t.integer :grades, array: true
-  t.string :tags, array: true, null: false, default: []
+  t.string :tags, array: true, null: false, default: [].to_yaml
 
   t.string :nickname, blank: false, default: 'Please enter your nickname'
 end
