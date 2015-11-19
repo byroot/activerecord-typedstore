@@ -3,7 +3,7 @@ language: ruby
 rvm:
   - 2.0
   - 2.1
-  - 2.2
+  - 2.2.3
 gemfile:
   - gemfiles/Gemfile.ar-3.2
   - gemfiles/Gemfile.ar-4.0
@@ -19,6 +19,7 @@ addons:
   postgresql: 9.3
 
 sudo: false
+cache: bundler
 
 before_script:
   - mysql -e 'create database typed_store_test;'
