@@ -21,7 +21,11 @@ module ActiveRecord::TypedStore
       def typed_store(store_attribute, options={}, &block)
         dsl = DSL.new(options.fetch(:accessors, true), &block)
 
-        serialize store_attribute, create_coder(store_attribute, dsl.columns).new(options[:coder])
+        unless options[:no_coder]
+          coder = create_coder(store_attribute, dsl.columns).new(options[:coder])
+          serialize store_attribute, coder
+        end
+
         store_accessor(store_attribute, dsl.accessors)
 
         register_typed_store_columns(store_attribute, dsl.columns)
