@@ -144,13 +144,29 @@ if ENV['POSTGRES']
     end
 
     if ENV['POSTGRES_JSON']
-      class PostgresJsonTypedStoreModel < ActiveRecord::Base
-        establish_connection ENV['POSTGRES_URL'] || :test_postgresql
-        store :untyped_settings, accessors: [:title]
-        typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
-          define_store_columns(s)
+
+      if AR_VERSION >= AR_4_2
+
+        class PostgresJsonTypedStoreModel < ActiveRecord::Base
+          establish_connection ENV['POSTGRES_URL'] || :test_postgresql
+          store :untyped_settings, accessors: [:title]
+          typed_store :settings, coder: false do |s|
+            define_store_columns(s)
+          end
         end
+
+      else
+
+        class PostgresJsonTypedStoreModel < ActiveRecord::Base
+          establish_connection ENV['POSTGRES_URL'] || :test_postgresql
+          store :untyped_settings, accessors: [:title]
+          typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
+            define_store_columns(s)
+          end
+        end
+
       end
+
     end
 
   end
