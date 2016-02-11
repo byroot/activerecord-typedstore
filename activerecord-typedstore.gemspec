@@ -24,8 +24,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake', '~> 10'
   spec.add_development_dependency 'rspec', '~> 3'
   spec.add_development_dependency 'coveralls', '~> 0'
-  spec.add_development_dependency 'sqlite3', '~> 0'
-  spec.add_development_dependency 'pg', '~> 0'
-  spec.add_development_dependency 'mysql2', '~> 0'
-  spec.add_development_dependency 'database_cleaner', '~> 0'
+  spec.add_development_dependency 'sqlite3', '~> 1'
+  spec.add_development_dependency 'pg', '~> 0.18'
+  spec.add_development_dependency 'mysql2', '> 0.3'
+  spec.add_development_dependency 'database_cleaner', '~> 1'
 end
