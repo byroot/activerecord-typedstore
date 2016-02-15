@@ -21,7 +21,7 @@ module ActiveRecord::TypedStore
       def typed_store(store_attribute, options={}, &block)
         dsl = DSL.new(options.fetch(:accessors, true), &block)
 
-        options[:coder] = DumbCoder if  options[:coder] == false
+        options[:coder] = IdentityCoder if options[:coder] == false
 
         serialize store_attribute, create_coder(store_attribute, dsl.columns).new(options[:coder])
         store_accessor(store_attribute, dsl.accessors)
@@ -187,7 +187,7 @@ module ActiveRecord::TypedStore
 
   require 'active_record/typed_store/ar_32_fallbacks' if IS_AR_3_2
   require 'active_record/typed_store/coder'
-  require 'active_record/typed_store/dumb_coder'
+  require 'active_record/typed_store/identity_coder'
 
   unless IS_AR_3_2
     ActiveModel::AttributeMethods::ClassMethods.send(:alias_method, :define_virtual_attribute_method, :define_attribute_method)
