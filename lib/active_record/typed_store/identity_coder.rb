@@ -1,6 +1,6 @@
 module ActiveRecord::TypedStore
 
-  module DumbCoder
+  module IdentityCoder
     extend self
 
     def load(data)
