@@ -187,6 +187,7 @@ module ActiveRecord::TypedStore
 
   require 'active_record/typed_store/ar_32_fallbacks' if IS_AR_3_2
   require 'active_record/typed_store/coder'
+  require 'active_record/typed_store/dumb_coder'
 
   unless IS_AR_3_2
     ActiveModel::AttributeMethods::ClassMethods.send(:alias_method, :define_virtual_attribute_method, :define_attribute_method)
