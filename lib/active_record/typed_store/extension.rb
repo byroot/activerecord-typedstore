@@ -1,6 +1,7 @@
 require 'active_record/typed_store/column'
 require 'active_record/typed_store/dsl'
 require 'active_record/typed_store/typed_hash'
+require 'active_record/typed_store/ar_extension'
 
 module ActiveRecord::TypedStore
   AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
@@ -23,7 +24,8 @@ module ActiveRecord::TypedStore
 
         options[:coder] = IdentityCoder if options[:coder] == false
 
-        serialize store_attribute, create_coder(store_attribute, dsl.columns).new(options[:coder])
+        coder = create_coder(store_attribute, dsl.columns, options[:store_defaults]).new(options[:coder])
+        serialize store_attribute, coder
         store_accessor(store_attribute, dsl.accessors)
 
         register_typed_store_columns(store_attribute, dsl.columns)
@@ -46,10 +48,10 @@ module ActiveRecord::TypedStore
 
       private
 
-      def create_coder(store_attribute, columns)
+      def create_coder(store_attribute, columns, store_defaults)
         store_class = TypedHash.create(columns)
         const_set("#{store_attribute}_hash".camelize, store_class)
-        coder_class = Coder.create(store_class)
+        coder_class = Coder.create(store_class, store_defaults)
         const_set("#{store_attribute}_coder".camelize, coder_class)
         coder_class
       end

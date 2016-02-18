@@ -1,12 +1,14 @@
 module ActiveRecord::TypedStore
 
   class Coder < ::ActiveRecord::Store::IndifferentCoder
+    cattr_accessor :store_defaults
 
     class << self
 
-      def create(store_class)
+      def create(store_class, store_defaults)
         Class.new(self) do
           @store_class = store_class
+          @@store_defaults =  store_defaults
         end
       end
 
