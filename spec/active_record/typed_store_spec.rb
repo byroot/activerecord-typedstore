@@ -31,6 +31,15 @@ shared_examples 'any model' do
 
   end
 
+  describe 'multi parameter values' do
+
+    it 'cast are expected type' do
+      model.attributes = {"published_on(1i)"=>"2014", "published_on(2i)"=>"3", "published_on(3i)"=>"24"}
+      expect(model.published_on).to be == Date.new(2014, 3, 24)
+    end
+
+  end
+
   describe 'build' do
 
     it 'assign attributes received by #initialize' do

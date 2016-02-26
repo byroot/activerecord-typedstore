@@ -95,6 +95,10 @@ module ActiveRecord::TypedStore
 
     end
 
+    def column_for_attribute(name)
+      super || self.class.typed_store_attributes[name.to_s]
+    end
+
     protected
 
     if IS_AR_4_2
