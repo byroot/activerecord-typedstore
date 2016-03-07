@@ -6,22 +6,85 @@ module ActiveRecord::TypedStore
   module Extension
     extend ActiveSupport::Concern
 
+    included do
+      class_attribute :typed_stores
+    end
+
     module ClassMethods
+      def store_accessors
+        return [] unless typed_stores
+        typed_stores.values.map(&:accessors).flatten
+      end
+
       def typed_store(store_attribute, options={}, &block)
         dsl = DSL.new(options, &block)
-        attribute(store_attribute, Type.new(dsl.types, dsl.defaults))
+        self.typed_stores = {}
+        self.typed_stores[store_attribute] = dsl
+
+        typed_klass = TypedHash.create(dsl.columns.values)
+        const_set("#{store_attribute}_hash".camelize, typed_klass)
+
+        attribute(store_attribute, Type.new(typed_klass, dsl.coder))
         store_accessor(store_attribute, dsl.accessors)
+      end
 
-        dsl.accessors.each do |accessor_name|
-          define_method("#{accessor_name}_changed?") do
-            send("#{store_attribute}_changed?") &&
-              send(store_attribute)[accessor_name] != send("#{store_attribute}_was")[accessor_name]
-          end
+      def define_attribute_methods
+        super
+        define_typed_store_attribute_methods if typed_stores
+      end
 
-          define_method("#{accessor_name}?") do
-            send(accessor_name).present?
+      def undefine_attribute_methods # :nodoc:
+        super if @typed_store_attribute_methods_generated
+        @typed_store_attribute_methods_generated = false
+      end
+
+      def define_typed_store_attribute_methods
+        return if @typed_store_attribute_methods_generated
+        store_accessors.each do |attribute|
+          define_attribute_method(attribute.to_s)
+          undefine_before_type_cast_method(attribute)
+        end
+        @typed_store_attribute_methods_generated = true
+      end
+
+      def undefine_before_type_cast_method(attribute)
+        # because it mess with ActionView forms, see #14.
+        method = "#{attribute}_before_type_cast"
+        undef_method(method) if method_defined?(method)
+      end
+    end
+
+    def clear_attribute_change(attr_name)
+      return if self.class.store_accessors.include?(attr_name.to_sym)
+      super
+    end
+
+    def write_store_attribute(store_attribute, key, value)
+      if typed_stores && typed_stores[store_attribute]
+        prev_value = read_store_attribute(store_attribute, key)
+        new_value = typed_stores[store_attribute].columns[key].cast(value)
+        attribute_will_change!(key.to_s) if new_value != prev_value
+      end
+
+      super
+    end
+
+    def query_attribute(attr_name)
+      if self.class.store_accessors.include? attr_name.to_sym
+        value = public_send(attr_name)
+
+        case value
+        when true        then true
+        when false, nil  then false
+        else
+          if value.respond_to?(:zero?)
+            !value.zero?
+          else
+            !value.blank?
           end
         end
+      else
+        super
       end
     end
   end

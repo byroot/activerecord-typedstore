@@ -40,15 +40,26 @@ def define_columns(t)
   t.decimal :shipping_cost, precision: 16, scale: 2
 
   t.integer :grades, array: true
-  t.string :tags, array: true, null: false, default: [].to_yaml
+
+  if is_postgres?(t)
+    t.string :tags, array: true, null: false, default: '{}'
+  else
+    t.string :tags, array: true, null: false, default: [].to_yaml
+  end
 
   t.string :nickname, blank: false, default: 'Please enter your nickname'
+end
+
+def is_postgres?(table)
+  defined?(ActiveRecord::ConnectionAdapters::PostgreSQL::TableDefinition) &&
+    table.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQL::TableDefinition)
 end
 
 def define_store_columns(t)
   define_columns(t)
   t.any :author
   t.any :source, blank: false, default: 'web'
+  t.any :signup, default: {}
   t.string :country, blank: false, default: 'Canada', accessor: false
 end
 
@@ -88,7 +99,9 @@ class CreateAllTables < ActiveRecord::Migration
   end
 end
 ActiveRecord::Migration.verbose = true
-CreateAllTables.up
+ActiveRecord::Migration.suppress_messages do
+  CreateAllTables.up
+end
 
 class ColumnCoder
 
@@ -214,7 +227,6 @@ class MarshalTypedStoreModel < ActiveRecord::Base
     define_store_columns(s)
   end
 end
-
 
 Models = [
   Sqlite3RegularARModel,

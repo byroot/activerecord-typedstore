@@ -1,9 +1,7 @@
 module ActiveRecord::TypedStore
-
   class TypedHash < HashWithIndifferentAccess
 
     class << self
-
       attr_reader :columns
 
       def create(columns)
@@ -12,15 +10,15 @@ module ActiveRecord::TypedStore
         end
       end
 
+      def defaults_hash
+        Hash[columns.values.select(&:has_default?).map { |c| [c.name, c.default] }]
+      end
     end
 
-    def initialize(constructor={}, types = {})
+    def initialize(constructor={})
       super()
-      @types = types
-      constructor = values.map do |key, value|
-        [key, types[key].deserialize(value)]
-      end.to_h
-      update(constructor)
+      update(defaults_hash)
+      update(constructor.to_h) if constructor.respond_to?(:to_h)
     end
 
     def []=(key, value)
@@ -28,23 +26,33 @@ module ActiveRecord::TypedStore
     end
     alias_method :store, :[]=
 
-    # def merge!(other_hash)
-    #   other_hash.each_pair do |key, value|
-    #     if block_given? && key?(key)
-    #       value = yield(convert_key(key), self[key], value)
-    #     end
-    #     self[convert_key(key)] = convert_value(value)
-    #   end
-    #   self
-    # end
-    # alias_method :update, :merge!
+    def merge!(other_hash)
+      other_hash.each_pair do |key, value|
+        if block_given? && key?(key)
+          value = yield(convert_key(key), self[key], value)
+        end
+        self[convert_key(key)] = convert_value(value)
+      end
+      self
+    end
+    alias_method :update, :merge!
 
     private
 
-    attr_reader :types
+    delegate :columns, :defaults_hash, to: 'self.class'
 
     def cast_value(key, value)
-      types[key].cast(value)
+      key = convert_key(key)
+      column = columns[key]
+      return value unless column
+
+      casted_value = column.cast(value)
+
+      if casted_value.nil? && !column.null && column.has_default?
+        return column.default
+      end
+
+      casted_value
     end
   end
 end

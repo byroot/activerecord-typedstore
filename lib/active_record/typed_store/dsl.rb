@@ -1,31 +1,47 @@
+require 'active_record/typed_store/column'
 module ActiveRecord::TypedStore
   class DSL
-    attr_reader :types, :defaults
+    attr_reader :columns, :coder
 
-    def initialize(accessors)
-      @types = Hash.new(ActiveRecord::Type::Value.new)
-      @defaults = {}
+    def initialize(options)
+      @coder = options.fetch(:coder, default_coder)
+      @columns = {}
       yield self
     end
 
-    def accessors
-      @types.keys
+    def default_coder
+      ActiveRecord::Coders::YAMLColumn.new
     end
+
+    def accessors
+      @columns.values.select { |v| v.accessor }.map(&:name)
+    end
+
+    delegate :keys, to: :@columns
 
     NO_DEFAULT_GIVEN = Object.new
-    [:string, :text, :integer, :float, :date_time, :date, :boolean, :decimal].each do |type|
-      define_method(type) do |name, default: NO_DEFAULT_GIVEN, null: true, array: false, **options|
-        @types[name.to_sym] = ActiveRecord::Type.lookup(type)
-
-        if default != NO_DEFAULT_GIVEN
-          @defaults[name.to_sym] = default
+    [:string, :text, :integer, :float, :datetime, :date, :boolean, :decimal, :any].each do |type|
+      define_method(type) do |name, **options|
+        if options.key?(:default)
+          options[:default] = decode_default(options[:default])
         end
+        @columns[name] = Column.new(name, type, options)
       end
     end
-    alias_method :datetime, :date_time
+    alias_method :date_time, :datetime
 
-    def any(name, **options)
-      @types[name.to_sym] = ActiveRecord::Type::Value.new
+    private
+
+    def decode_default(value)
+      if @coder.is_a?(ActiveRecord::Coders::YAMLColumn)
+        begin
+          @coder.load(value)
+        rescue
+          value
+        end
+      else
+        value
+      end
     end
   end
 end
