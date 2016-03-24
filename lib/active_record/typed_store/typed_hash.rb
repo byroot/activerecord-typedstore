@@ -2,16 +2,16 @@ module ActiveRecord::TypedStore
   class TypedHash < HashWithIndifferentAccess
 
     class << self
-      attr_reader :columns
+      attr_reader :fields
 
-      def create(columns)
+      def create(fields)
         Class.new(self) do
-          @columns = columns.index_by { |c| c.name.to_s }
+          @fields = fields.index_by { |c| c.name.to_s }
         end
       end
 
       def defaults_hash
-        Hash[columns.values.select(&:has_default?).map { |c| [c.name, c.default] }]
+        Hash[fields.values.select(&:has_default?).map { |c| [c.name, c.default] }]
       end
     end
 
@@ -39,17 +39,17 @@ module ActiveRecord::TypedStore
 
     private
 
-    delegate :columns, :defaults_hash, to: 'self.class'
+    delegate :fields, :defaults_hash, to: 'self.class'
 
     def cast_value(key, value)
       key = convert_key(key)
-      column = columns[key]
-      return value unless column
+      field = fields[key]
+      return value unless field
 
-      casted_value = column.cast(value)
+      casted_value = field.cast(value)
 
-      if casted_value.nil? && !column.null && column.has_default?
-        return column.default
+      if casted_value.nil? && !field.null && field.has_default?
+        return field.default
       end
 
       casted_value

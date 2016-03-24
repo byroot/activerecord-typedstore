@@ -3,7 +3,7 @@ require 'spec_helper'
 describe ActiveRecord::TypedStore::TypedHash do
 
   def create_hash_class(*args)
-    described_class.create([ActiveRecord::TypedStore::Column.new(*args)])
+    described_class.create([ActiveRecord::TypedStore::Field.new(*args)])
   end
 
   def build_hash(*args)

@@ -1,5 +1,5 @@
 module ActiveRecord::TypedStore
-  class Column
+  class Field
     attr_reader :array, :blank, :name, :default, :type, :null, :accessor, :type_sym
 
     def initialize(name, type, options={})

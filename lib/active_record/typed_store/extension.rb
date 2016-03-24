@@ -21,7 +21,7 @@ module ActiveRecord::TypedStore
         self.typed_stores = {}
         self.typed_stores[store_attribute] = dsl
 
-        typed_klass = TypedHash.create(dsl.columns.values)
+        typed_klass = TypedHash.create(dsl.fields.values)
         const_set("#{store_attribute}_hash".camelize, typed_klass)
 
         attribute(store_attribute, Type.new(typed_klass, dsl.coder))
@@ -62,7 +62,7 @@ module ActiveRecord::TypedStore
     def write_store_attribute(store_attribute, key, value)
       if typed_stores && typed_stores[store_attribute]
         prev_value = read_store_attribute(store_attribute, key)
-        new_value = typed_stores[store_attribute].columns[key].cast(value)
+        new_value = typed_stores[store_attribute].fields[key].cast(value)
         attribute_will_change!(key.to_s) if new_value != prev_value
       end
 
