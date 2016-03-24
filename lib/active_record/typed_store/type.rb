@@ -47,9 +47,5 @@ module ActiveRecord::TypedStore
       end
       raw_old_value.nil? != raw_new_value.nil? || raw_old_value != raw_new_value
     end
-
-    protected
-
-    attr_reader :columns
   end
 end
