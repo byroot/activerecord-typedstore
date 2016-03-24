@@ -41,18 +41,14 @@ def define_columns(t)
 
   t.integer :grades, array: true
 
-  if is_postgres?(t)
-    t.string :tags, array: true, null: false, default: '{}'
-  else
+  if t.respond_to?(:name) && t.name =~ /sqlite|mysql/
+    # native sqlite cannot automatically cast array to yaml
     t.string :tags, array: true, null: false, default: [].to_yaml
+  else
+    t.string :tags, array: true, null: false, default: []
   end
 
   t.string :nickname, blank: false, default: 'Please enter your nickname'
-end
-
-def is_postgres?(table)
-  defined?(ActiveRecord::ConnectionAdapters::PostgreSQL::TableDefinition) &&
-    table.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQL::TableDefinition)
 end
 
 def define_store_columns(t)

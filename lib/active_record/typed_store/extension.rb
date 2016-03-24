@@ -70,7 +70,7 @@ module ActiveRecord::TypedStore
     end
 
     def query_attribute(attr_name)
-      if self.class.store_accessors.include? attr_name.to_sym
+      if self.class.store_accessors.include?(attr_name.to_sym)
         value = public_send(attr_name)
 
         case value
