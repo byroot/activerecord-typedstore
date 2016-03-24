@@ -5,7 +5,7 @@ module ActiveRecord::TypedStore
     attr_reader :fields, :coder
 
     def initialize(options)
-      @coder = options.fetch(:coder, default_coder)
+      @coder = options.fetch(:coder) { default_coder }
       @fields = {}
       yield self
     end
