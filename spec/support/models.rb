@@ -40,7 +40,13 @@ def define_columns(t)
   t.decimal :shipping_cost, precision: 16, scale: 2
 
   t.integer :grades, array: true
-  t.string :tags, array: true, null: false, default: []
+
+  if t.respond_to?(:name) && t.name =~ /sqlite|mysql/
+    # native sqlite cannot automatically cast array to yaml
+    t.string :tags, array: true, null: false, default: [].to_yaml
+  else
+    t.string :tags, array: true, null: false, default: []
+  end
 
   t.string :nickname, blank: false, default: 'Please enter your nickname'
 end
@@ -49,6 +55,7 @@ def define_store_columns(t)
   define_columns(t)
   t.any :author
   t.any :source, blank: false, default: 'web'
+  t.any :signup, default: {}
   t.string :country, blank: false, default: 'Canada', accessor: false
 end
 
@@ -88,7 +95,9 @@ class CreateAllTables < ActiveRecord::Migration
   end
 end
 ActiveRecord::Migration.verbose = true
-CreateAllTables.up
+ActiveRecord::Migration.suppress_messages do
+  CreateAllTables.up
+end
 
 class ColumnCoder
 
@@ -214,7 +223,6 @@ class MarshalTypedStoreModel < ActiveRecord::Base
     define_store_columns(s)
   end
 end
-
 
 Models = [
   Sqlite3RegularARModel,

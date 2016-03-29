@@ -1,29 +1,31 @@
+require 'active_record/typed_store/field'
+
 module ActiveRecord::TypedStore
-
   class DSL
+    attr_reader :fields, :coder
 
-    attr_reader :columns
-
-    def initialize(accessors=true)
-      @accessors = accessors
-      @columns = []
+    def initialize(options)
+      @coder = options.fetch(:coder) { default_coder }
+      @fields = {}
       yield self
     end
 
-    def accessors
-      @columns.select(&:accessor?).map(&:name)
+    def default_coder
+      ActiveRecord::Coders::YAMLColumn.new
     end
 
-    [:string, :text, :integer, :float, :datetime, :date, :boolean, :any].each do |type|
-      define_method(type) do |name, options = {}|
-        @columns << Column.new(name, type, {accessor: @accessors}.merge(options))
+    def accessors
+      @fields.values.select { |v| v.accessor }.map(&:name)
+    end
+
+    delegate :keys, to: :@fields
+
+    NO_DEFAULT_GIVEN = Object.new
+    [:string, :text, :integer, :float, :datetime, :date, :boolean, :decimal, :any].each do |type|
+      define_method(type) do |name, **options|
+        @fields[name] = Field.new(name, type, options)
       end
     end
-
-    def decimal(name, options = {})
-      @columns << Column.new(name, :decimal, {accessor: @accessors, limit: 20, scale: 6}.merge(options))
-    end
-
+    alias_method :date_time, :datetime
   end
-
 end

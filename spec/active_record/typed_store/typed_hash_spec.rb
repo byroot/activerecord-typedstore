@@ -3,7 +3,7 @@ require 'spec_helper'
 describe ActiveRecord::TypedStore::TypedHash do
 
   def create_hash_class(*args)
-    described_class.create([ActiveRecord::TypedStore::Column.new(*args)])
+    described_class.create([ActiveRecord::TypedStore::Field.new(*args)])
   end
 
   def build_hash(*args)
@@ -25,6 +25,11 @@ describe ActiveRecord::TypedStore::TypedHash do
         expect(hash[:age]).to be == 24
       end
 
+      it "accepts hashy constructor" do
+        object = double(to_h: { age: '24' })
+        hash = hash_class.new(object)
+        expect(hash[:age]).to eq 24
+      end
     end
 
     describe '#initialize' do

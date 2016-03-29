@@ -7,9 +7,14 @@ shared_examples 'any model' do
   describe 'reset_column_information' do
 
     it 'do not definitely undefine attributes' do
-      expect {
-        described_class.reset_column_information
-      }.to_not change { model.age_changed? }
+      expect(model.age).to be_present
+      expect(model.age_changed?).to be_falsey
+
+      described_class.reset_column_information
+
+      model = described_class.new
+      expect(model.age).to be_present
+      expect(model.age_changed?).to be_falsey
     end
 
   end
@@ -25,7 +30,7 @@ shared_examples 'any model' do
   describe 'regular AR::Store' do
 
     it 'save attributes as usual' do
-      model.update_attributes(title: 'The Big Lebowski')
+      model.update(title: 'The Big Lebowski')
       expect(model.reload.title).to be == 'The Big Lebowski'
     end
 
@@ -41,16 +46,15 @@ shared_examples 'any model' do
   end
 
   describe 'dirty tracking' do
-
     it 'track changed attributes' do
-      expect {
-        model.age = 24
-      }.to change { !!model.age_changed? }.from(false).to(true)
+      expect(model.age_changed?).to be_falsey
+      model.age = 24
+      expect(model.age_changed?).to be_truthy
     end
 
     it 'keep track of what the attribute was' do
       model.age = 24
-      expect(model.age_was).to be == 12
+      expect(model.age_was).to eq 12
     end
 
     it 'keep track of the whole changes' do
@@ -120,7 +124,7 @@ shared_examples 'any model' do
 
     it 'raise an ActiveRecord::UnknownAttributeError on save attemps' do
       expect {
-        model.update_attributes(unknown_attribute: 42)
+        model.update(unknown_attribute: 42)
       }.to raise_error ActiveRecord::UnknownAttributeError
     end
 
@@ -133,11 +137,9 @@ shared_examples 'any model' do
   end
 
   describe 'all attributes' do
-
     it 'is initialized at nil if :default is not defined' do
       expect(model.no_default).to be_nil
     end
-
   end
 
   describe 'string attribute' do
@@ -151,7 +153,7 @@ shared_examples 'any model' do
     end
 
     it 'properly cast the value as string' do
-      model.update_attributes(name: 42)
+      model.update(name: 42)
       expect(model.reload.name).to be == '42'
     end
 
@@ -195,14 +197,15 @@ shared_examples 'any model' do
       it "cast `#{value.inspect}` as `false`" do
         model.public = value
         expect(model.public).to be false
+        expect(model.public?).to be false
       end
 
     end
 
     it 'properly persit the value' do
-      model.update_attributes(public: false)
+      model.update(public: false)
       expect(model.reload.public).to be false
-      model.update_attributes(public: true)
+      model.update(public: true)
       expect(model.reload.public).to be true
     end
 
@@ -213,7 +216,7 @@ shared_examples 'any model' do
     end
 
     it 'can store nil if the column is nullable' do
-      model.update_attributes(enabled: nil)
+      model.update(enabled: nil)
       expect(model.reload.enabled).to be_nil
     end
 
@@ -231,7 +234,7 @@ shared_examples 'any model' do
     end
 
     it 'nil is not considered present' do
-      model.update_attributes(enabled: nil)
+      model.update(enabled: nil)
       expect(model.enabled?).to be false
     end
 
@@ -254,7 +257,7 @@ shared_examples 'any model' do
     end
 
     it 'can store nil if the column is nullable' do
-      model.update_attributes(max_length: nil)
+      model.update(max_length: nil)
       expect(model.reload.max_length).to be_nil
     end
 
@@ -296,7 +299,7 @@ shared_examples 'any model' do
     end
 
     it 'can store nil if the column is nullable' do
-      model.update_attributes(price: nil)
+      model.update(price: nil)
       expect(model.reload.price).to be_nil
     end
 
@@ -340,13 +343,13 @@ shared_examples 'any model' do
     end
 
     it 'retreive a BigDecimal instance' do
-      model.update_attributes(shipping_cost: 4.2)
+      model.update(shipping_cost: 4.2)
       expect(model.reload.shipping_cost).to be == BigDecimal.new('4.2')
       expect(model.reload.shipping_cost).to be_a BigDecimal
     end
 
     it 'can store nil if the column is nullable' do
-      model.update_attributes(shipping_cost: nil)
+      model.update(shipping_cost: nil)
       expect(model.reload.shipping_cost).to be_nil
     end
 
@@ -385,17 +388,17 @@ shared_examples 'any model' do
     end
 
     it 'retreive a Date instance' do
-      model.update_attributes(published_on: date)
+      model.update(published_on: date)
       expect(model.reload.published_on).to be == date
     end
 
     it 'nillify unparsable dates' do
-      model.update_attributes(remind_on: 'foo')
+      model.update(remind_on: 'foo')
       expect(model.remind_on).to be_nil
     end
 
     it 'can store nil if the column is nullable' do
-      model.update_attributes(remind_on: nil)
+      model.update(remind_on: nil)
       expect(model.reload.remind_on).to be_nil
     end
 
@@ -438,7 +441,7 @@ shared_examples 'any model' do
         end
 
         it 'retreive a Time instance' do
-          model.update_attributes(published_at: datetime)
+          model.update(published_at: datetime)
           expect(model.reload.published_at).to be == time
         end
 
@@ -450,7 +453,7 @@ shared_examples 'any model' do
         end
 
         it 'retreive a DateTime instance' do
-          model.update_attributes(published_at: datetime)
+          model.update(published_at: datetime)
           expect(model.reload.published_at).to be == datetime
         end
 
@@ -475,12 +478,12 @@ shared_examples 'any model' do
     end
 
     it 'nillify unparsable datetimes' do
-      model.update_attributes(remind_at: 'foo')
+      model.update(remind_at: 'foo')
       expect(model.remind_at).to be_nil
     end
 
     it 'can store nil if the column is nullable' do
-      model.update_attributes(remind_at: nil)
+      model.update(remind_at: nil)
       expect(model.reload.remind_at).to be_nil
     end
 
@@ -498,10 +501,50 @@ shared_examples 'any model' do
 end
 
 shared_examples 'a store' do |retain_type=true|
-
   let(:model) { described_class.new }
 
+  describe "without connection" do
+    before do
+      $conn_params = ActiveRecord::Base.remove_connection
+    end
+    after do
+      ActiveRecord::Base.establish_connection $conn_params
+    end
+
+    it "does not require a connection to initialize a model" do
+      klass = Class.new(ActiveRecord::Base) do
+        typed_store :settings do |t|
+          t.integer :age
+        end
+      end
+      expect(klass.connected?).to be_falsy
+    end
+  end
+
+  describe 'model.typed_stores' do
+    it "can access keys" do
+      stores = model.class.typed_stores
+      expect(stores[:settings].keys).to eq [:no_default, :name, :email, :cell_phone, :public, :enabled, :age, :max_length, :rate, :price, :published_on, :remind_on, :published_at, :remind_at, :total_price, :shipping_cost, :grades, :tags, :nickname, :author, :source, :signup, :country]
+    end
+  end
+
+  it 'does not include blank attribute' do
+    expect(model.settings).not_to have_key(:remind_on)
+    model.settings = { extra_key: 123 }
+    model.save!
+    expect(model.settings).not_to have_key(:remind_on)
+  end
+
   describe 'assigning the store' do
+    it 'handles mutated value' do
+      model.save!
+      model.settings[:signup][:apps] ||= []
+      model.settings[:signup][:apps] << 123
+      expect(model.settings[:signup]).to eq ({
+        "apps" => [123]
+      })
+      expect(model.settings_changed?).to eq true
+    end
 
     it 'coerce it to the proper typed hash' do
       expect {
@@ -515,23 +558,56 @@ shared_examples 'a store' do |retain_type=true|
       }.to_not change { model.settings['nickname'] }
     end
 
+    it 'has indifferent accessor' do
+      expect(model.settings[:age]).to eq model.settings['age']
+      model.settings['age'] = "40"
+      expect(model.settings[:age]).to eq 40
+    end
+
+    it 'does not crash on decoding non-hash store value' do
+      expect {
+        model.settings = String.new
+        model.settings
+      }.to raise_error ArgumentError, "ActiveRecord::TypedStore expects a hash as a column value, String received"
+
+      expect {
+        model.settings = String.new
+        model.save!
+      }.to raise_error ArgumentError, "ActiveRecord::TypedStore expects a hash as a column value, String received"
+    end
+
+    it 'does not crash if column is nil' do
+      model.save!
+      model.update_column(:settings, nil)
+
+      model.reload
+      expect(model.settings).to be_present
+    end
+
+    it 'allows to assign custom key' do
+      model.settings[:not_existing_key] = 42
+      expect(model.settings[:not_existing_key]).to eq 42
+      model.save!
+
+      model.reload
+      expect(model.settings[:not_existing_key]).to eq 42
+    end
   end
 
   describe 'attributes' do
 
     it 'retrieve default if assigned nil and null not allowed' do
-      model.update_attributes(age: nil)
+      model.update(age: nil)
       expect(model.age).to be == 12
     end
 
     context 'when column cannot be blank' do
-
       it 'retreive default if not persisted yet, and nothing was assigned' do
         expect(model.nickname).to be == 'Please enter your nickname'
       end
 
       it 'retreive default if assigned a blank value' do
-        model.update_attributes(nickname: '')
+        model.update(nickname: '')
         expect(model.nickname).to be == 'Please enter your nickname'
         expect(model.reload.nickname).to be == 'Please enter your nickname'
       end
@@ -559,6 +635,10 @@ shared_examples 'a store' do |retain_type=true|
       expect(model).to_not respond_to :reset_country!
     end
 
+    it 'does not have dirty accessors' do
+      expect(model).not_to respond_to :country_was
+    end
+
     it 'still has casting a default handling' do
       expect(model.settings[:country]).to be == 'Canada'
     end
@@ -568,37 +648,25 @@ shared_examples 'a store' do |retain_type=true|
   describe '`any` attributes' do
 
     it 'accept any type' do
-      model.update_attributes(author: 'George')
+      model.update(author: 'George')
       expect(model.reload.author).to be == 'George'
 
-      model.update_attributes(author: 42)
+      model.update(author: 42)
       expect(model.reload.author).to be == (retain_type ? 42 : '42')
     end
 
     it 'still handle default' do
-      model.update_attributes(source: '')
+      model.update(source: '')
       expect(model.reload.source).to be == 'web'
     end
 
-  end
-
-  describe 'updated defaults' do
-
-    it 'update defaults for outdated serials' do
+    it 'works with default hash' do
+      model.signup[:counter] = 123
       model.save!
-      expect(model.settings[:brand_new]).to be_nil
-      new_column = ActiveRecord::TypedStore::Column.new(:brand_new, :boolean, null: false, default: true)
-      begin
-        model.class::SettingsHash.columns['brand_new'] = new_column
-        model.reload
-        expect(model.settings[:brand_new]).to be true
-      ensure
-        model.class::SettingsHash.columns.delete('brand_new')
-      end
+      expect(model.settings[:signup][:counter]).to eq 123
     end
 
   end
-
 end
 
 shared_examples 'a db backed model' do
@@ -607,24 +675,21 @@ shared_examples 'a db backed model' do
 
   it 'let the underlying db raise if assigned nil on non nullable column' do
     expect {
-      model.update_attributes(age: nil)
+      model.update(age: nil)
     }.to raise_error(ActiveRecord::StatementInvalid)
   end
 
   describe "#write_attribute" do
-
+    let(:value) { 12 }
     it "attr_name can be a string" do
-      value = 12
       model.send(:write_attribute, 'age', value)
       expect(model.age).to be == value
     end
 
     it "attr_name can be a symbol" do
-      value = 12
       model.send(:write_attribute, :age, value)
       expect(model.age).to be == value
     end
-
   end
 
 end
@@ -634,36 +699,33 @@ shared_examples 'a model supporting arrays' do |pg_native=false|
   let(:model) { described_class.new }
 
   it 'retrieve an array of values' do
-    model.update_attributes(grades: [1, 2, 3, 4])
+    model.update(grades: [1, 2, 3, 4])
     expect(model.reload.grades).to be == [1, 2, 3, 4]
   end
 
   it 'cast values inside the array (integer)' do
-    pending('ActiveRecord bug: https://github.com/rails/rails/pull/11245') if pg_native && AR_VERSION < AR_4_2
-    model.update_attributes(grades: ['1', 2, 3.4])
+    model.update(grades: ['1', 2, 3.4])
     expect(model.reload.grades).to be == [1, 2, 3]
   end
 
   it 'cast values inside the array (string)' do
-    model.update_attributes(tags: [1, 2.3])
+    model.update(tags: [1, 2.3])
     expect(model.reload.tags).to be == %w(1 2.3)
   end
 
   it 'accept nil inside array even if collumn is non nullable' do
-    model.update_attributes(tags: [1, nil])
+    model.update(tags: [1, nil])
     expect(model.reload.tags).to be == ['1', nil]
   end
 
-  if !pg_native || AR_VERSION < AR_4_2
+  if !pg_native
     it 'convert non array value as empty array' do
-      model.update_attributes(grades: 'foo')
+      model.update(grades: 'foo')
       expect(model.reload.grades).to be == []
     end
-  end
 
-  if !pg_native || AR_VERSION >= AR_4_1
     it 'accept multidimensianl arrays' do
-      model.update_attributes(grades: [[1, 2], [3, 4]])
+      model.update(grades: [[1, 2], [3, 4]])
       expect(model.reload.grades).to be == [[1, 2], [3, 4]]
     end
   end
@@ -672,32 +734,29 @@ shared_examples 'a model supporting arrays' do |pg_native=false|
 
     it 'raise on non rectangular multidimensianl arrays' do
       expect{
-        model.update_attributes(grades: [[1, 2], [3, 4, 5]])
+        model.update(grades: [[1, 2], [3, 4, 5]])
       }.to raise_error(ActiveRecord::StatementInvalid)
     end
 
     it 'raise on non nil assignation if column is non nullable' do
       expect{
-        model.update_attributes(tags: nil)
+        model.update(tags: nil)
       }.to raise_error(ActiveRecord::StatementInvalid)
     end
 
   else
 
     it 'accept non rectangular multidimensianl arrays' do
-      model.update_attributes(grades: [[1, 2], [3, 4, 5]])
+      model.update(grades: [[1, 2], [3, 4, 5]])
       expect(model.reload.grades).to be == [[1, 2], [3, 4, 5]]
     end
 
     it 'retreive default if assigned null' do
-      model.update_attributes(tags: nil)
+      model.update(tags: nil)
       expect(model.reload.tags).to be == []
     end
-
   end
-
 end
-
 
 describe Sqlite3RegularARModel do
   it_should_behave_like 'any model'
@@ -712,7 +771,7 @@ end if defined?(MysqlRegularARModel)
 describe PostgresqlRegularARModel do
   it_should_behave_like 'any model'
   it_should_behave_like 'a db backed model'
-  it_should_behave_like 'a model supporting arrays', true if AR_VERSION >= AR_4_0
+  it_should_behave_like 'a model supporting arrays', true
 end if defined?(PostgresqlRegularARModel)
 
 describe PostgresHstoreTypedStoreModel do

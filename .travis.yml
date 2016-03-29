@@ -1,13 +1,10 @@
 language: ruby
 
 rvm:
-  - 2.0
   - 2.1
-  - 2.2
+  - 2.2.3
+  - 2.3.0
 gemfile:
-  - gemfiles/Gemfile.ar-3.2
-  - gemfiles/Gemfile.ar-4.0
-  - gemfiles/Gemfile.ar-4.1
   - gemfiles/Gemfile.ar-4.2
   - gemfiles/Gemfile.ar-edge
 
@@ -19,16 +16,8 @@ addons:
   postgresql: 9.3
 
 sudo: false
+cache: bundler
 
 before_script:
   - mysql -e 'create database typed_store_test;'
   - psql -c 'create database typed_store_test;' -U postgres
-
-matrix:
-  allow_failures:
-    - gemfile: gemfiles/Gemfile.ar-edge
-  exclude:
-   - gemfile: gemfiles/Gemfile.ar-edge
-     rvm: 2.1
-   - gemfile: gemfiles/Gemfile.ar-edge
-     rvm: 2.0
