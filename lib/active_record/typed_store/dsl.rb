@@ -6,6 +6,8 @@ module ActiveRecord::TypedStore
 
     def initialize(options)
       @coder = options.fetch(:coder) { default_coder }
+      @accessors = options[:accessors]
+      @accessors = [] if options[:accessors] == false
       @fields = {}
       yield self
     end
@@ -15,7 +17,7 @@ module ActiveRecord::TypedStore
     end
 
     def accessors
-      @fields.values.select { |v| v.accessor }.map(&:name)
+      @accessors || @fields.values.select(&:accessor).map(&:name)
     end
 
     delegate :keys, to: :@fields

@@ -51,6 +51,21 @@ def define_columns(t)
   t.string :nickname, blank: false, default: 'Please enter your nickname'
 end
 
+def define_store_with_no_attributes(**options)
+  typed_store :explicit_settings, accessors: false, **options do |t|
+    t.string :ip_address, default: '127.0.0.1'
+    t.string :user_agent
+    t.any :signup, default: {}
+  end
+end
+
+def define_store_with_partially_exposed_attributes(**options)
+  typed_store :partial_settings, accessors: [:tax_rate], **options do |t|
+    t.string :tax_rate_key
+    t.string :tax_rate
+  end
+end
+
 def define_store_columns(t)
   define_columns(t)
   t.any :author
@@ -58,6 +73,7 @@ def define_store_columns(t)
   t.any :signup, default: {}
   t.string :country, blank: false, default: 'Canada', accessor: false
 end
+
 
 class CreateAllTables < ActiveRecord::Migration
 
@@ -150,6 +166,9 @@ if ENV['POSTGRES']
       typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
         define_store_columns(s)
       end
+
+      define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
+      define_store_with_partially_exposed_attributes(coder: ColumnCoder.new(AsJson))
     end
 
     if ENV['POSTGRES_JSON']
@@ -162,6 +181,9 @@ if ENV['POSTGRES']
           typed_store :settings, coder: false do |s|
             define_store_columns(s)
           end
+
+          define_store_with_no_attributes(coder: false)
+          define_store_with_partially_exposed_attributes(coder: false)
         end
 
       else
@@ -172,6 +194,9 @@ if ENV['POSTGRES']
           typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
             define_store_columns(s)
           end
+
+          define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
+          define_store_with_partially_exposed_attributes(coder: ColumnCoder.new(AsJson))
         end
 
       end
@@ -192,6 +217,9 @@ class YamlTypedStoreModel < ActiveRecord::Base
   typed_store :settings do |s|
     define_store_columns(s)
   end
+
+  define_store_with_no_attributes
+  define_store_with_partially_exposed_attributes
 end
 
 class JsonTypedStoreModel < ActiveRecord::Base
@@ -200,6 +228,9 @@ class JsonTypedStoreModel < ActiveRecord::Base
   typed_store :settings, coder: ColumnCoder.new(JSON) do |s|
     define_store_columns(s)
   end
+
+  define_store_with_no_attributes(coder: ColumnCoder.new(JSON))
+  define_store_with_partially_exposed_attributes(coder: ColumnCoder.new(JSON))
 end
 
 module MarshalCoder
@@ -222,6 +253,9 @@ class MarshalTypedStoreModel < ActiveRecord::Base
   typed_store :settings, coder: ColumnCoder.new(MarshalCoder) do |s|
     define_store_columns(s)
   end
+
+  define_store_with_no_attributes(coder: ColumnCoder.new(MarshalCoder))
+  define_store_with_partially_exposed_attributes(coder: ColumnCoder.new(MarshalCoder))
 end
 
 Models = [
