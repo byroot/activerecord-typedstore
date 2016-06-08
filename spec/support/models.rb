@@ -106,9 +106,9 @@ class CreateAllTables < ActiveRecord::Migration
 
     ActiveRecord::Base.establish_connection(:test_sqlite3)
     recreate_table(:sqlite3_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
-    recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
-    recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
-    recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :untyped_settings }
+    recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
   end
 end
 ActiveRecord::Migration.verbose = true
