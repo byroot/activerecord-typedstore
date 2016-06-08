@@ -658,16 +658,16 @@ shared_examples 'a store' do |retain_type=true|
   describe 'with no accessors' do
 
     it 'cannot be accessed as a model attribute' do
-      expect(model).to_not respond_to :ip_address
-      expect(model).to_not respond_to :ip_address=
+      expect(model).not_to respond_to :ip_address
+      expect(model).not_to respond_to :ip_address=
     end
 
     it 'cannot be queried' do
-      expect(model).to_not respond_to :ip_address?
+      expect(model).not_to respond_to :ip_address?
     end
 
     it 'cannot be reset' do
-      expect(model).to_not respond_to :reset_ip_address!
+      expect(model).not_to respond_to :reset_ip_address!
     end
 
     it 'does not have dirty accessors' do
@@ -683,7 +683,7 @@ shared_examples 'a store' do |retain_type=true|
   describe 'with some accessors' do
 
     it 'does not define an attribute' do
-      expect(model).to_not respond_to :tax_rate_key
+      expect(model).not_to respond_to :tax_rate_key
     end
 
     it 'define an attribute when included in the accessors array' do
