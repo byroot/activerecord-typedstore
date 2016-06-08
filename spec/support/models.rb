@@ -59,21 +59,22 @@ def define_store_with_no_attributes(**options)
   end
 end
 
-def define_store_with_partially_exposed_attributes(**options)
+def define_store_with_partial_attributes(**options)
   typed_store :partial_settings, accessors: [:tax_rate], **options do |t|
     t.string :tax_rate_key
     t.string :tax_rate
   end
 end
 
-def define_store_columns(t)
-  define_columns(t)
-  t.any :author
-  t.any :source, blank: false, default: 'web'
-  t.any :signup, default: {}
-  t.string :country, blank: false, default: 'Canada', accessor: false
+def define_store_with_attributes(**options)
+  typed_store :settings, **options do |t|
+    define_columns(t)
+    t.any :author
+    t.any :source, blank: false, default: 'web'
+    t.any :signup, default: {}
+    t.string :country, blank: false, default: 'Canada', accessor: false
+  end
 end
-
 
 class CreateAllTables < ActiveRecord::Migration
 
@@ -163,12 +164,10 @@ if ENV['POSTGRES']
     class PostgresHstoreTypedStoreModel < ActiveRecord::Base
       establish_connection ENV['POSTGRES_URL'] || :test_postgresql
       store :untyped_settings, accessors: [:title]
-      typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
-        define_store_columns(s)
-      end
 
+      define_store_with_attributes(coder: ColumnCoder.new(AsJson))
       define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
-      define_store_with_partially_exposed_attributes(coder: ColumnCoder.new(AsJson))
+      define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
     end
 
     if ENV['POSTGRES_JSON']
@@ -178,12 +177,10 @@ if ENV['POSTGRES']
         class PostgresJsonTypedStoreModel < ActiveRecord::Base
           establish_connection ENV['POSTGRES_URL'] || :test_postgresql
           store :untyped_settings, accessors: [:title]
-          typed_store :settings, coder: false do |s|
-            define_store_columns(s)
-          end
 
+          define_store_with_attributes(coder: false)
           define_store_with_no_attributes(coder: false)
-          define_store_with_partially_exposed_attributes(coder: false)
+          define_store_with_partial_attributes(coder: false)
         end
 
       else
@@ -191,12 +188,10 @@ if ENV['POSTGRES']
         class PostgresJsonTypedStoreModel < ActiveRecord::Base
           establish_connection ENV['POSTGRES_URL'] || :test_postgresql
           store :untyped_settings, accessors: [:title]
-          typed_store :settings, coder: ColumnCoder.new(AsJson) do |s|
-            define_store_columns(s)
-          end
 
+          define_store_with_attributes(coder: ColumnCoder.new(AsJson))
           define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
-          define_store_with_partially_exposed_attributes(coder: ColumnCoder.new(AsJson))
+          define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
         end
 
       end
@@ -214,23 +209,19 @@ end
 class YamlTypedStoreModel < ActiveRecord::Base
   establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
-  typed_store :settings do |s|
-    define_store_columns(s)
-  end
 
+  define_store_with_attributes
   define_store_with_no_attributes
-  define_store_with_partially_exposed_attributes
+  define_store_with_partial_attributes
 end
 
 class JsonTypedStoreModel < ActiveRecord::Base
   establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
-  typed_store :settings, coder: ColumnCoder.new(JSON) do |s|
-    define_store_columns(s)
-  end
 
+  define_store_with_attributes(coder: ColumnCoder.new(JSON))
   define_store_with_no_attributes(coder: ColumnCoder.new(JSON))
-  define_store_with_partially_exposed_attributes(coder: ColumnCoder.new(JSON))
+  define_store_with_partial_attributes(coder: ColumnCoder.new(JSON))
 end
 
 module MarshalCoder
@@ -250,12 +241,10 @@ end
 class MarshalTypedStoreModel < ActiveRecord::Base
   establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
-  typed_store :settings, coder: ColumnCoder.new(MarshalCoder) do |s|
-    define_store_columns(s)
-  end
 
+  define_store_with_attributes(coder: ColumnCoder.new(MarshalCoder))
   define_store_with_no_attributes(coder: ColumnCoder.new(MarshalCoder))
-  define_store_with_partially_exposed_attributes(coder: ColumnCoder.new(MarshalCoder))
+  define_store_with_partial_attributes(coder: ColumnCoder.new(MarshalCoder))
 end
 
 Models = [
