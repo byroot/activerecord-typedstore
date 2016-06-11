@@ -526,6 +526,16 @@ shared_examples 'a store' do |retain_type=true|
       stores = model.class.typed_stores
       expect(stores[:settings].keys).to eq [:no_default, :name, :email, :cell_phone, :public, :enabled, :age, :max_length, :rate, :price, :published_on, :remind_on, :published_at, :remind_at, :total_price, :shipping_cost, :grades, :tags, :nickname, :author, :source, :signup, :country]
     end
+
+    it "can access keys even when accessors are not defined" do
+      stores = model.class.typed_stores
+      expect(stores[:explicit_settings].keys).to eq [:ip_address, :user_agent, :signup]
+    end
+
+    it "can access keys even when accessors are partially defined" do
+      stores = model.class.typed_stores
+      expect(stores[:partial_settings].keys).to eq [:tax_rate_key, :tax_rate]
+    end
   end
 
   it 'does not include blank attribute' do
@@ -645,6 +655,43 @@ shared_examples 'a store' do |retain_type=true|
 
   end
 
+  describe 'with no accessors' do
+
+    it 'cannot be accessed as a model attribute' do
+      expect(model).not_to respond_to :ip_address
+      expect(model).not_to respond_to :ip_address=
+    end
+
+    it 'cannot be queried' do
+      expect(model).not_to respond_to :ip_address?
+    end
+
+    it 'cannot be reset' do
+      expect(model).not_to respond_to :reset_ip_address!
+    end
+
+    it 'does not have dirty accessors' do
+      expect(model).not_to respond_to :ip_address_was
+    end
+
+    it 'still has casting a default handling' do
+      expect(model.explicit_settings[:ip_address]).to be == '127.0.0.1'
+    end
+
+  end
+
+  describe 'with some accessors' do
+
+    it 'does not define an attribute' do
+      expect(model).not_to respond_to :tax_rate_key
+    end
+
+    it 'define an attribute when included in the accessors array' do
+      expect(model).to respond_to :tax_rate
+    end
+
+  end
+
   describe '`any` attributes' do
 
     it 'accept any type' do
@@ -664,6 +711,12 @@ shared_examples 'a store' do |retain_type=true|
       model.signup[:counter] = 123
       model.save!
       expect(model.settings[:signup][:counter]).to eq 123
+    end
+
+    it 'works with default hash without affecting unaccessible attributes' do
+      model.signup[:counter] = 123
+      model.save!
+      expect(model.explicit_settings[:signup][:counter]).to be_nil
     end
 
   end
