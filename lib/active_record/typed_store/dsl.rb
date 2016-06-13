@@ -8,6 +8,7 @@ module ActiveRecord::TypedStore
       @coder = options.fetch(:coder) { default_coder }
       @accessors = options[:accessors]
       @accessors = [] if options[:accessors] == false
+      @prefix = options[:prefix]
       @fields = {}
       yield self
     end

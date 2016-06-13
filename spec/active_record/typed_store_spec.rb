@@ -692,6 +692,24 @@ shared_examples 'a store' do |retain_type=true|
 
   end
 
+  describe 'with prefixed accessors' do
+
+    it 'define prefixed accessors' do
+      expect(model).to respond_to :preferences_language
+      expect(model).to respond_to :preferences_language=
+    end
+
+    it 'define prefixed query accessors' do
+      expect(model).to respond_to :preferences_language?
+    end
+
+    it 'does not have accessors when explicitly mentionned' do
+      expect(model).not_to respond_to :timezone
+      expect(model).not_to respond_to :preferences_timezone
+    end
+
+  end
+
   describe '`any` attributes' do
 
     it 'accept any type' do
