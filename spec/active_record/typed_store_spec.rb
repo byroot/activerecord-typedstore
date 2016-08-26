@@ -140,6 +140,11 @@ shared_examples 'any model' do
     it 'is initialized at nil if :default is not defined' do
       expect(model.no_default).to be_nil
     end
+
+    it 'is accessible throught #read_attribute' do
+      model.name = 'foo'
+      expect(model.read_attribute(:name)).to be == 'foo'
+    end
   end
 
   describe 'string attribute' do
