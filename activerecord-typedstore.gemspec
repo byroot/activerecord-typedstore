@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Jean Boussier']
   spec.email         = ['jean.boussier@gmail.com']
   spec.description   = %q{ActiveRecord::Store but with type definition}
-  spec.summary       = %q{Add type casting and full method attributes support to RctiveRecord store}
+  spec.summary       = %q{Add type casting and full method attributes support to АctiveRecord store}
   spec.homepage      = 'https://github.com/byroot/activerecord-typedstore'
   spec.license       = 'MIT'
 
