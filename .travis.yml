@@ -21,3 +21,8 @@ cache: bundler
 before_script:
   - mysql -e 'create database typed_store_test;'
   - psql -c 'create database typed_store_test;' -U postgres
+
+matrix:
+  exclude:
+    - rvm: 2.1
+      gemfile: gemfiles/Gemfile.ar-5.0
