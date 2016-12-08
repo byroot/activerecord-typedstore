@@ -6,7 +6,7 @@ rvm:
   - 2.3.0
 gemfile:
   - gemfiles/Gemfile.ar-4.2
-  - gemfiles/Gemfile.ar-edge
+  - gemfiles/Gemfile.ar-5.0
 
 env:
   - TIMEZONE_AWARE=1 POSTGRES=1 MYSQL=1
