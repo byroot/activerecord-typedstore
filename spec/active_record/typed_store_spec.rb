@@ -602,6 +602,10 @@ shared_examples 'a store' do |retain_type=true|
       model.reload
       expect(model.settings[:not_existing_key]).to eq 42
     end
+
+    it 'delegates internal methods to the underlying type' do
+      expect(model.class.type_for_attribute("settings").type).to eq :text
+    end
   end
 
   describe 'attributes' do

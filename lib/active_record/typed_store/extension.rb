@@ -24,7 +24,9 @@ module ActiveRecord::TypedStore
         typed_klass = TypedHash.create(dsl.fields.values)
         const_set("#{store_attribute}_hash".camelize, typed_klass)
 
-        attribute(store_attribute, Type.new(typed_klass, dsl.coder))
+        decorate_attribute_type(store_attribute, :typed_store) do |subtype|
+          Type.new(typed_klass, dsl.coder, subtype)
+        end
         store_accessor(store_attribute, dsl.accessors)
       end
 
