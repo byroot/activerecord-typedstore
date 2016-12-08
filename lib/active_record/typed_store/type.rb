@@ -1,8 +1,8 @@
 module ActiveRecord::TypedStore
   class Type < ActiveRecord::Type::Serialized
-    def initialize(typed_hash_klass, coder)
+    def initialize(typed_hash_klass, coder, subtype)
       @typed_hash_klass = typed_hash_klass
-      super(ActiveRecord::Type::Value.new, coder)
+      super(subtype, coder)
     end
 
     [:deserialize, :type_cast_from_database, :type_cast_from_user].each do |method|
