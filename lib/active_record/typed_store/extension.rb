@@ -17,6 +17,8 @@ module ActiveRecord::TypedStore
       end
 
       def typed_store(store_attribute, options={}, &block)
+        options[:prefix] = store_attribute if options[:prefix] == true
+
         dsl = DSL.new(options, &block)
         self.typed_stores ||= {}
         self.typed_stores[store_attribute] = dsl

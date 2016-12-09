@@ -696,6 +696,34 @@ shared_examples 'a store' do |retain_type=true|
 
   end
 
+  describe 'with prefix' do
+
+    it 'defines accessors' do
+      expect(model).to respond_to :preferences_language
+      expect(model).to respond_to :preferences_language=
+    end
+
+    it 'defines query accessors' do
+      expect(model).to respond_to :preferences_language?
+    end
+
+    it 'does not have accessors when explicitly mentionned' do
+      expect(model).not_to respond_to :timezone
+      expect(model).not_to respond_to :preferences_timezone
+    end
+
+    it 'can be updated' do
+      model.update(preferences_language: 'en')
+      expect(model.reload.preferences_language).to be == 'en'
+    end
+
+    it 'still handle default' do
+      model.update(preferences_language: '')
+      expect(model.reload.source).to be == 'fr'
+    end
+
+  end
+
   describe '`any` attributes' do
 
     it 'accept any type' do

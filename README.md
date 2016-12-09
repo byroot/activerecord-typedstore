@@ -92,6 +92,14 @@ typed_store :settings do |s|
   s.string :postal_code, accessor: false
 end
 
+# or even prefix them
+typed_store :browser, prefix: true do |s|
+  s.string :ip
+end
+
+shop.browser_ip = "127.0.0.1"
+shop.browser[:ip] == shop.browser_ip # => true
+
 ```
 
 Type casting rules and attribute behavior are exactly the same as a for real database columns.
@@ -148,7 +156,7 @@ Since HStore can only store strings:
   - `any` attributes will be converted to string
 
 If you use HStore because you need to be able to query the store from SQL, and any of these limitations are an issue for you,
-than you could probably use the JSON column type, which do not suffer from these limitations and is also queriable. 
+than you could probably use the JSON column type, which do not suffer from these limitations and is also queriable.
 
 ## Contributing
 

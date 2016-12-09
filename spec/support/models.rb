@@ -76,6 +76,13 @@ def define_store_with_attributes(**options)
   end
 end
 
+def define_store_with_prefix(**options)
+  typed_store :preferences, prefix: true, **options do |t|
+    t.any :language, default: 'fr'
+    t.string :timezone, accessor: false
+  end
+end
+
 class CreateAllTables < ActiveRecord::Migration
 
   def self.recreate_table(name, *args, &block)
@@ -106,9 +113,9 @@ class CreateAllTables < ActiveRecord::Migration
 
     ActiveRecord::Base.establish_connection(:test_sqlite3)
     recreate_table(:sqlite3_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
-    recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-    recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-    recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :preferences; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :preferences; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :preferences; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
   end
 end
 ActiveRecord::Migration.verbose = true
@@ -165,6 +172,7 @@ if ENV['POSTGRES']
       establish_connection ENV['POSTGRES_URL'] || :test_postgresql
       store :untyped_settings, accessors: [:title]
 
+      define_store_with_prefix(coder: ColumnCoder.new(AsJson))
       define_store_with_attributes(coder: ColumnCoder.new(AsJson))
       define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
       define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
@@ -178,6 +186,7 @@ if ENV['POSTGRES']
           establish_connection ENV['POSTGRES_URL'] || :test_postgresql
           store :untyped_settings, accessors: [:title]
 
+          define_store_with_prefix(coder: false)
           define_store_with_attributes(coder: false)
           define_store_with_no_attributes(coder: false)
           define_store_with_partial_attributes(coder: false)
@@ -189,6 +198,7 @@ if ENV['POSTGRES']
           establish_connection ENV['POSTGRES_URL'] || :test_postgresql
           store :untyped_settings, accessors: [:title]
 
+          define_store_with_prefix(coder: ColumnCoder.new(AsJson))
           define_store_with_attributes(coder: ColumnCoder.new(AsJson))
           define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
           define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
@@ -210,6 +220,7 @@ class YamlTypedStoreModel < ActiveRecord::Base
   establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
 
+  define_store_with_prefix
   define_store_with_attributes
   define_store_with_no_attributes
   define_store_with_partial_attributes
@@ -219,6 +230,7 @@ class JsonTypedStoreModel < ActiveRecord::Base
   establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
 
+  define_store_with_prefix(coder: ColumnCoder.new(JSON))
   define_store_with_attributes(coder: ColumnCoder.new(JSON))
   define_store_with_no_attributes(coder: ColumnCoder.new(JSON))
   define_store_with_partial_attributes(coder: ColumnCoder.new(JSON))
@@ -242,6 +254,7 @@ class MarshalTypedStoreModel < ActiveRecord::Base
   establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
 
+  define_store_with_prefix(coder: ColumnCoder.new(MarshalCoder))
   define_store_with_attributes(coder: ColumnCoder.new(MarshalCoder))
   define_store_with_no_attributes(coder: ColumnCoder.new(MarshalCoder))
   define_store_with_partial_attributes(coder: ColumnCoder.new(MarshalCoder))

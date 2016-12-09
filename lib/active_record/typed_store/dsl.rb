@@ -9,6 +9,7 @@ module ActiveRecord::TypedStore
       @accessors = options[:accessors]
       @accessors = [] if options[:accessors] == false
       @fields = {}
+      @prefix = options[:prefix]
       yield self
     end
 
@@ -17,7 +18,7 @@ module ActiveRecord::TypedStore
     end
 
     def accessors
-      @accessors || @fields.values.select(&:accessor).map(&:name)
+      @accessors || prefixed_accessors
     end
 
     delegate :keys, to: :@fields
@@ -29,5 +30,13 @@ module ActiveRecord::TypedStore
       end
     end
     alias_method :date_time, :datetime
+
+    private
+
+    def prefixed_accessors
+      @fields.values
+             .select(&:accessor)
+             .map { |accessor| [@prefix, accessor.name].compact.join('_').to_sym }
+    end
   end
 end
