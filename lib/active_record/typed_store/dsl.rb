@@ -4,16 +4,22 @@ module ActiveRecord::TypedStore
   class DSL
     attr_reader :fields, :coder
 
-    def initialize(options)
-      @coder = options.fetch(:coder) { default_coder }
+    def initialize(attribute_name, options)
+      @coder = options.fetch(:coder) { default_coder(attribute_name) }
       @accessors = options[:accessors]
       @accessors = [] if options[:accessors] == false
       @fields = {}
       yield self
     end
 
-    def default_coder
-      ActiveRecord::Coders::YAMLColumn.new
+    if ActiveRecord.gem_version < Gem::Version.new('5.1.0')
+      def default_coder(attribute_name)
+        ActiveRecord::Coders::YAMLColumn.new
+      end
+    else
+      def default_coder(attribute_name)
+        ActiveRecord::Coders::YAMLColumn.new(attribute_name)
+      end
     end
 
     def accessors
