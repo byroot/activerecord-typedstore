@@ -6,12 +6,13 @@ AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
 AR_4_0 = Gem::Version.new('4.0')
 AR_4_1 = Gem::Version.new('4.1.0.beta')
 AR_4_2 = Gem::Version.new('4.2.0-rc1')
+AR_5_0 = Gem::Version.new('5.0.0')
 
 ActiveRecord::Base.time_zone_aware_attributes = ENV['TIMEZONE_AWARE'] != '0'
 ActiveRecord::Base.configurations = {
-  'test_sqlite3' => {adapter: 'sqlite3', database: "/tmp/typed_store.db"},
-  'test_postgresql' => {adapter: 'postgresql', database: 'typed_store_test', username: 'postgres'},
-  'test_mysql' => {adapter: 'mysql2', database: 'typed_store_test', username: 'travis'},
+  'test_sqlite3' => { 'adapter' => 'sqlite3', 'database' => '/tmp/typed_store.db' },
+  'test_postgresql' => { 'adapter' => 'postgresql', 'database' => 'typed_store_test', 'username' => 'postgres' },
+  'test_mysql' => { 'adapter' => 'mysql2', 'database' => 'typed_store_test', 'username' => 'travis' },
 }
 
 def define_columns(t)
@@ -76,7 +77,8 @@ def define_store_with_attributes(**options)
   end
 end
 
-class CreateAllTables < ActiveRecord::Migration
+MigrationClass = AR_VERSION >= AR_5_0 ? ActiveRecord::Migration["5.0"] : ActiveRecord::Migration
+class CreateAllTables < MigrationClass
 
   def self.recreate_table(name, *args, &block)
     execute "drop table if exists #{name}"

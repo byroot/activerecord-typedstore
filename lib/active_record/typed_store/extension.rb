@@ -17,7 +17,7 @@ module ActiveRecord::TypedStore
       end
 
       def typed_store(store_attribute, options={}, &block)
-        dsl = DSL.new(options, &block)
+        dsl = DSL.new(store_attribute, options, &block)
         self.typed_stores ||= {}
         self.typed_stores[store_attribute] = dsl
 
