@@ -57,12 +57,12 @@ module ActiveRecord::TypedStore
     end
 
     def clear_attribute_change(attr_name)
-      return if self.class.store_accessors.include?(attr_name.to_sym)
+      return if self.class.store_accessors.include?(normalize_attribute(attr_name))
       super
     end
 
     def read_attribute(attr_name)
-      if self.class.store_accessors.include?(attr_name.to_sym)
+      if self.class.store_accessors.include?(normalize_attribute(attr_name))
         return public_send(attr_name)
       end
       super
@@ -94,6 +94,15 @@ module ActiveRecord::TypedStore
         end
       else
         super
+      end
+    end
+
+    def normalize_attribute(attr)
+      case attr
+      when Symbol
+        attr
+      else
+        attr.to_s.to_sym
       end
     end
   end

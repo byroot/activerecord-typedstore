@@ -145,6 +145,14 @@ shared_examples 'any model' do
       model.name = 'foo'
       expect(model.read_attribute(:name)).to be == 'foo'
     end
+
+    it 'is accessible through #read_attribute when attribute is nil' do
+      expect(model.read_attribute(nil)).to be_nil
+    end
+
+    it 'allows #increment! when attribute is nil' do
+      expect { model.increment!(nil) }.to raise_error(ActiveModel::MissingAttributeError)
+    end
   end
 
   describe 'string attribute' do
