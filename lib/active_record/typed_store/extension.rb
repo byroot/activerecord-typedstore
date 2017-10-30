@@ -17,17 +17,23 @@ module ActiveRecord::TypedStore
       end
 
       def typed_store(store_attribute, options={}, &block)
-        dsl = DSL.new(store_attribute, options, &block)
+        dsl = find_or_initialize_dsl(store_attribute, options, &block)
+
         self.typed_stores ||= {}
         self.typed_stores[store_attribute] = dsl
 
         typed_klass = TypedHash.create(dsl.fields.values)
-        const_set("#{store_attribute}_hash".camelize, typed_klass)
-
+        const_name = "#{store_attribute}_hash".camelize
+        send(:remove_const, const_name) if const_defined?(const_name)
+        const_set(const_name, typed_klass)
         decorate_attribute_type(store_attribute, :typed_store) do |subtype|
           Type.new(typed_klass, dsl.coder, subtype)
         end
         store_accessor(store_attribute, dsl.accessors)
+
+        return unless @exdsl_accessors
+        extend_accessors = dsl.accessors - @exdsl_accessors
+        extend_typed_store_attribute_methods extend_accessors
       end
 
       def define_attribute_methods
@@ -42,17 +48,38 @@ module ActiveRecord::TypedStore
 
       def define_typed_store_attribute_methods
         return if @typed_store_attribute_methods_generated
-        store_accessors.each do |attribute|
-          define_attribute_method(attribute.to_s)
-          undefine_before_type_cast_method(attribute)
-        end
-        @typed_store_attribute_methods_generated = true
+        extend_typed_store_attribute_methods store_accessors
       end
 
       def undefine_before_type_cast_method(attribute)
         # because it mess with ActionView forms, see #14.
         method = "#{attribute}_before_type_cast"
         undef_method(method) if method_defined?(method)
+      end
+
+      protected
+
+      def extend_typed_store_attribute_methods(*attr_names)
+        return if attr_names.blank?
+        attr_names.flatten.each do |attribute|
+          define_attribute_method(attribute.to_s)
+          undefine_before_type_cast_method(attribute)
+        end
+        @exdsl_accessors = nil if @exdsl_accessors
+        @typed_store_attribute_methods_generated = true
+      end
+
+      private
+
+      def find_or_initialize_dsl(store_attribute, options)
+        dsl = typed_stores && typed_stores[store_attribute]
+        if dsl.present?
+          @exdsl_accessors = store_accessors
+          dsl = dsl.clone
+        end
+        dsl ||= DSL.new(store_attribute, options)
+        yield dsl
+        dsl
       end
     end
 
