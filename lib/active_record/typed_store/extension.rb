@@ -19,6 +19,7 @@ module ActiveRecord::TypedStore
       def typed_store(store_attribute, options={}, &block)
         dsl = DSL.new(store_attribute, options, &block)
         self.typed_stores ||= {}
+        self.typed_stores = typed_stores.deep_dup
         self.typed_stores[store_attribute] = dsl
 
         typed_klass = TypedHash.create(dsl.fields.values)
