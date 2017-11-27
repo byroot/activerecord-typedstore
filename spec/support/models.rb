@@ -217,6 +217,14 @@ class YamlTypedStoreModel < ActiveRecord::Base
   define_store_with_partial_attributes
 end
 
+class InheritedTypedStoreModel < YamlTypedStoreModel
+  establish_connection :test_sqlite3
+
+  typed_store :settings do |t|
+    t.string :new_attribute
+  end
+end
+
 class JsonTypedStoreModel < ActiveRecord::Base
   establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
@@ -237,7 +245,6 @@ module MarshalCoder
   def dump(value)
     Base64.encode64(Marshal.dump(value))
   end
-
 end
 
 class MarshalTypedStoreModel < ActiveRecord::Base
@@ -252,6 +259,7 @@ end
 Models = [
   Sqlite3RegularARModel,
   YamlTypedStoreModel,
+  InheritedTypedStoreModel,
   JsonTypedStoreModel,
   MarshalTypedStoreModel
 ]
