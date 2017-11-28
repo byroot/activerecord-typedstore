@@ -77,6 +77,13 @@ def define_store_with_attributes(**options)
   end
 end
 
+def define_store_with_extended_attributes(**options)
+  typed_store :extended_settings, **options do |t|
+    t.any :extended_field
+    t.string :extended_field_key, blank: false, default: 'Extension', accessor: false
+  end
+end
+
 MigrationClass = AR_VERSION >= AR_5_0 ? ActiveRecord::Migration["5.0"] : ActiveRecord::Migration
 class CreateAllTables < MigrationClass
 
@@ -108,9 +115,9 @@ class CreateAllTables < MigrationClass
 
     ActiveRecord::Base.establish_connection(:test_sqlite3)
     recreate_table(:sqlite3_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
-    recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-    recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-    recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :extended_settings; t.text :untyped_settings }
+    recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :extended_settings; t.text :untyped_settings }
+    recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :extended_settings; t.text :untyped_settings }
   end
 end
 ActiveRecord::Migration.verbose = true
@@ -170,6 +177,7 @@ if ENV['POSTGRES']
       define_store_with_attributes(coder: ColumnCoder.new(AsJson))
       define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
       define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
+      define_store_with_extended_attributes(coder: ColumnCoder.new(AsJson))
     end
 
     if ENV['POSTGRES_JSON']
@@ -183,6 +191,7 @@ if ENV['POSTGRES']
           define_store_with_attributes(coder: false)
           define_store_with_no_attributes(coder: false)
           define_store_with_partial_attributes(coder: false)
+          define_store_with_extended_attributes(coder: false)
         end
 
       else
@@ -194,6 +203,7 @@ if ENV['POSTGRES']
           define_store_with_attributes(coder: ColumnCoder.new(AsJson))
           define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
           define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
+          define_store_with_extended_attributes(coder: ColumnCoder.new(AsJson))
         end
 
       end
@@ -215,6 +225,7 @@ class YamlTypedStoreModel < ActiveRecord::Base
   define_store_with_attributes
   define_store_with_no_attributes
   define_store_with_partial_attributes
+  define_store_with_extended_attributes
 end
 
 class InheritedTypedStoreModel < YamlTypedStoreModel
@@ -232,6 +243,7 @@ class JsonTypedStoreModel < ActiveRecord::Base
   define_store_with_attributes(coder: ColumnCoder.new(JSON))
   define_store_with_no_attributes(coder: ColumnCoder.new(JSON))
   define_store_with_partial_attributes(coder: ColumnCoder.new(JSON))
+  define_store_with_extended_attributes(coder: ColumnCoder.new(JSON))
 end
 
 module MarshalCoder
@@ -254,6 +266,7 @@ class MarshalTypedStoreModel < ActiveRecord::Base
   define_store_with_attributes(coder: ColumnCoder.new(MarshalCoder))
   define_store_with_no_attributes(coder: ColumnCoder.new(MarshalCoder))
   define_store_with_partial_attributes(coder: ColumnCoder.new(MarshalCoder))
+  define_store_with_extended_attributes(coder: ColumnCoder.new(MarshalCoder))
 end
 
 Models = [

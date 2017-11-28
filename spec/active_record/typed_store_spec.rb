@@ -619,6 +619,40 @@ shared_examples 'a store' do |retain_type=true|
     it 'delegates internal methods to the underlying type' do
       expect(model.class.type_for_attribute("settings").type).to eq :text
     end
+
+    context 'extending the store' do
+      it 'creates the store if does not exist' do
+        expect(model.class.typed_stores[:extended_settings].keys).to eq [:extended_field, :extended_field_key]
+        expect(model.extended_settings).to_not have_key :extended_field
+        expect(model).to respond_to :extended_field
+        expect(model.extended_settings).to have_key :extended_field_key
+        expect(model).to_not respond_to :extended_field_key
+      end
+
+      it 'extends the store if already exists' do
+        expect(model).to_not respond_to :new_extended_field
+        model.class.class_eval do
+          typed_store :extended_settings do |t|
+            t.integer :new_extended_field, default: 8, blank: false
+          end
+        end
+        e_model = described_class.new
+        expect(e_model).to respond_to :new_extended_field
+        expect(e_model.new_extended_field).to eq 8
+      end
+
+      it 'extends the store of subclass if already exists' do
+        klass = Class.new(model.class) do
+          typed_store :extended_settings do |t|
+            t.integer :new_extended_field, default: 8, blank: false
+          end
+        end.new
+        expect(klass.class.typed_stores[:extended_settings].keys).to eq [:extended_field, :extended_field_key, :new_extended_field]
+        expect(klass.extended_settings).to have_key :new_extended_field
+        expect(klass).to respond_to :new_extended_field
+        expect(model).to_not respond_to :new_extended_field
+      end
+    end
   end
 
   describe 'attributes' do
@@ -794,7 +828,7 @@ shared_examples 'a model supporting arrays' do |pg_native=false|
       expect(model.reload.grades).to be == []
     end
 
-    it 'accept multidimensianl arrays' do
+    it 'accept multidimensional arrays' do
       model.update(grades: [[1, 2], [3, 4]])
       expect(model.reload.grades).to be == [[1, 2], [3, 4]]
     end
@@ -802,7 +836,7 @@ shared_examples 'a model supporting arrays' do |pg_native=false|
 
   if pg_native
 
-    it 'raise on non rectangular multidimensianl arrays' do
+    it 'raise on non rectangular multidimensional arrays' do
       expect{
         model.update(grades: [[1, 2], [3, 4, 5]])
       }.to raise_error(ActiveRecord::StatementInvalid)
@@ -816,7 +850,7 @@ shared_examples 'a model supporting arrays' do |pg_native=false|
 
   else
 
-    it 'accept non rectangular multidimensianl arrays' do
+    it 'accept non rectangular multidimensional arrays' do
       model.update(grades: [[1, 2], [3, 4, 5]])
       expect(model.reload.grades).to be == [[1, 2], [3, 4, 5]]
     end

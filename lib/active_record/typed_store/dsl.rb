@@ -9,7 +9,7 @@ module ActiveRecord::TypedStore
       @accessors = options[:accessors]
       @accessors = [] if options[:accessors] == false
       @fields = {}
-      yield self
+      yield self if block_given?
     end
 
     if ActiveRecord.gem_version < Gem::Version.new('5.1.0')
