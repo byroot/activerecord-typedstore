@@ -21,7 +21,7 @@ end
 
 namespace :spec do
   task :all do
-    %w(3.2 4.0 edge).each do |ar_version|
+    %w(4.2 5.0 5.1).each do |ar_version|
       [1, 0].each do |timezone_aware|
         command = %W{
           BUNDLE_GEMFILE=gemfiles/Gemfile.ar-#{ar_version}
