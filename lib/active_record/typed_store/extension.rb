@@ -45,6 +45,7 @@ module ActiveRecord::TypedStore
         return if @typed_store_attribute_methods_generated
         store_accessors.each do |attribute|
           define_attribute_method(attribute.to_s)
+          attribute(attribute.to_sym) if ActiveRecord.gem_version >= Gem::Version.new('5.1.0')
           undefine_before_type_cast_method(attribute)
         end
         @typed_store_attribute_methods_generated = true
