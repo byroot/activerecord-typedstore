@@ -70,16 +70,6 @@ module ActiveRecord::TypedStore
       super
     end
 
-    def write_store_attribute(store_attribute, key, value)
-      if typed_stores && typed_stores[store_attribute]
-        prev_value = read_store_attribute(store_attribute, key)
-        new_value = typed_stores[store_attribute].fields[key].cast(value)
-        attribute_will_change!(key.to_s) if new_value != prev_value
-      end
-
-      super
-    end
-
     def query_attribute(attr_name)
       if self.class.store_accessors.include?(attr_name.to_sym)
         value = public_send(attr_name)
