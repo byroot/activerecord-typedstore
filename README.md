@@ -123,21 +123,7 @@ typed_store :settings, coder: Base64MarshalCoder do |s|
 end
 ```
 
-If you want to use Postgres HStore or JSON column types, then you need a very simple coder:
-```ruby
-module DumbCoder
-  extend self
-
-  def load(data)
-    data || {}
-  end
-
-  def dump(data)
-    data || {}
-  end
-
-end
-```
+If you want to use Postgres HStore or JSON column types, then you can pass in `ActiveRecord::TypedStore::IdentityCoder` as the coder.
 
 ## HStore limitations
 
