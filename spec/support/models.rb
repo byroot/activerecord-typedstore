@@ -100,7 +100,6 @@ class CreateAllTables < MigrationClass
         recreate_table(:postgres_hstore_typed_store_models) { |t| t.hstore :settings; t.text :untyped_settings }
 
         if ENV['POSTGRES_JSON']
-          execute "create extension if not exists json"
           recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :untyped_settings }
         end
       end
