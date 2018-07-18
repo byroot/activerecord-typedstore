@@ -513,7 +513,7 @@ shared_examples 'any model' do
 
 end
 
-shared_examples 'a store' do |retain_type=true|
+shared_examples 'a store' do |retain_type = true, settings_type = :text|
   let(:model) { described_class.new }
 
   describe "without connection" do
@@ -617,7 +617,7 @@ shared_examples 'a store' do |retain_type=true|
     end
 
     it 'delegates internal methods to the underlying type' do
-      expect(model.class.type_for_attribute("settings").type).to eq :text
+      expect(model.class.type_for_attribute("settings").type).to eq settings_type
     end
   end
 
@@ -855,7 +855,7 @@ end if defined?(PostgresHstoreTypedStoreModel)
 
 describe PostgresJsonTypedStoreModel do
   it_should_behave_like 'any model'
-  it_should_behave_like 'a store'
+  it_should_behave_like 'a store', true, :json
   it_should_behave_like 'a model supporting arrays'
 end if defined?(PostgresJsonTypedStoreModel)
 
