@@ -100,8 +100,7 @@ class CreateAllTables < MigrationClass
         recreate_table(:postgres_hstore_typed_store_models) { |t| t.hstore :settings; t.text :untyped_settings }
 
         if ENV['POSTGRES_JSON']
-          execute "create extension if not exists json"
-          recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :untyped_settings }
+          recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
         end
       end
     end
@@ -180,9 +179,9 @@ if ENV['POSTGRES']
           establish_connection ENV['POSTGRES_URL'] || :test_postgresql
           store :untyped_settings, accessors: [:title]
 
-          define_store_with_attributes(coder: false)
-          define_store_with_no_attributes(coder: false)
-          define_store_with_partial_attributes(coder: false)
+          define_store_with_attributes(coder: ColumnCoder.new(AsJson))
+          define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
+          define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
         end
 
       else
