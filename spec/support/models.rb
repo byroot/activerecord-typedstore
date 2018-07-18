@@ -179,9 +179,9 @@ if ENV['POSTGRES']
           establish_connection ENV['POSTGRES_URL'] || :test_postgresql
           store :untyped_settings, accessors: [:title]
 
-          define_store_with_attributes(coder: false)
-          define_store_with_no_attributes(coder: false)
-          define_store_with_partial_attributes(coder: false)
+          define_store_with_attributes(coder: ColumnCoder.new(AsJson))
+          define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
+          define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
         end
 
       else
