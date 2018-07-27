@@ -95,7 +95,7 @@ end
 ```
 
 Type casting rules and attribute behavior are exactly the same as a for real database columns.
-Actually the only difference is that you wont be able to query on these attributes (unless you use Postgres JSON or HStore types) and that you don't need to do a migration to add / remove an attribute.
+Actually the only difference is that you wont be able to query on these attributes (unless you use JSON or Postgres HStore types) and that you don't need to do a migration to add / remove an attribute.
 
 If not, please fill an issue.
 
@@ -123,7 +123,7 @@ typed_store :settings, coder: Base64MarshalCoder do |s|
 end
 ```
 
-If you want to use Postgres HStore or JSON column types, then you can pass in `ActiveRecord::TypedStore::IdentityCoder` as the coder.
+If you want to use JSON column or Postgres HStore types, then you can pass in `ActiveRecord::TypedStore::IdentityCoder` as the coder.
 
 ## HStore limitations
 
