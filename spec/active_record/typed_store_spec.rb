@@ -426,6 +426,58 @@ shared_examples 'any model' do
 
   end
 
+  describe 'time attributes' do
+    let(:time) { Time.new(1984, 6, 8, 13, 57, 12) }
+    let(:time_string) { '1984-06-08 13:57:12' }
+    let(:time) { time_string.respond_to?(:in_time_zone) ? time_string.in_time_zone : Time.parse(time_string) }
+
+    context "with ActiveRecord #{ActiveRecord::VERSION::STRING}" do
+      if AR_VERSION < AR_4_0
+        it 'has the defined default as initial value' do
+          model.save
+          expect(model.published_at).to be == time
+        end
+
+        it 'properly cast assigned value to time' do
+          model.remind_at = time_string
+          expect(model.remind_at).to be == time
+        end
+        it 'properly cast assigned value to time on save' do
+          model.remind_at = time_string
+          model.save
+          model.reload
+          expect(model.remind_at).to be == time
+        end
+        it 'retreive a Time instance' do
+          model.update(published_at: time)
+          expect(model.reload.published_at).to be == time
+        end
+      else
+        it 'has the defined default as initial value' do
+          model.save
+          expect(model.reload.published_at).to be == time
+        end
+
+        it 'retreive a time instance' do
+          model.update(published_at: time)
+          expect(model.reload.published_at).to be == time
+        end
+
+        if ActiveRecord::Base.time_zone_aware_attributes
+          it 'properly cast assigned value to time' do
+            model.remind_at = time_string
+            expect(model.remind_at).to be == time
+          end
+        else
+          it 'properly cast assigned value to time' do
+            model.remind_at = time_string
+            expect(model.remind_at).to be == time
+          end
+        end
+      end
+    end
+  end
+
   describe 'datetime attributes' do
 
     let(:datetime) { DateTime.new(1984, 6, 8, 13, 57, 12) }
@@ -537,7 +589,7 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
   describe 'model.typed_stores' do
     it "can access keys" do
       stores = model.class.typed_stores
-      expect(stores[:settings].keys).to eq [:no_default, :name, :email, :cell_phone, :public, :enabled, :age, :max_length, :rate, :price, :published_on, :remind_on, :published_at, :remind_at, :total_price, :shipping_cost, :grades, :tags, :nickname, :author, :source, :signup, :country]
+      expect(stores[:settings].keys).to eq [:no_default, :name, :email, :cell_phone, :public, :enabled, :age, :max_length, :rate, :price, :published_on, :remind_on, :published_at_time, :remind_at_time, :published_at, :remind_at, :total_price, :shipping_cost, :grades, :tags, :nickname, :author, :source, :signup, :country]
     end
 
     it "can access keys even when accessors are not defined" do

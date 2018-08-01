@@ -29,7 +29,7 @@ module ActiveRecord::TypedStore
     delegate :keys, to: :@fields
 
     NO_DEFAULT_GIVEN = Object.new
-    [:string, :text, :integer, :float, :datetime, :date, :boolean, :decimal, :any].each do |type|
+    [:string, :text, :integer, :float, :time, :datetime, :date, :boolean, :decimal, :any].each do |type|
       define_method(type) do |name, **options|
         @fields[name] = Field.new(name, type, options)
       end

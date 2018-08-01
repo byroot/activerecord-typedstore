@@ -34,6 +34,9 @@ def define_columns(t)
   t.date :published_on, default: '1984-06-08', null: false
   t.date :remind_on
 
+  t.time :published_at_time, default: '1984-06-08 13:57:12', null: false
+  t.time :remind_at_time
+
   t.datetime :published_at, default: '1984-06-08 13:57:12', null: false
   t.datetime :remind_at
 
