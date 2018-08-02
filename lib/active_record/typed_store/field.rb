@@ -39,6 +39,7 @@ module ActiveRecord::TypedStore
       string: ::ActiveRecord::Type::String,
       float: ::ActiveRecord::Type::Float,
       date: ::ActiveRecord::Type::Date,
+      time: ::ActiveRecord::Type::Time,
       datetime: ::ActiveRecord::Type::DateTime,
       decimal: ::ActiveRecord::Type::Decimal,
       any: ::ActiveRecord::Type::Value,
