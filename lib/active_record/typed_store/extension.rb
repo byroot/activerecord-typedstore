@@ -1,6 +1,7 @@
 require 'active_record/typed_store/dsl'
 require 'active_record/typed_store/type'
 require 'active_record/typed_store/typed_hash'
+require 'active_record/typed_store/identity_coder'
 
 module ActiveRecord::TypedStore
   module Extension
