@@ -94,10 +94,10 @@ end
 
 ```
 
-Type casting rules and attribute behavior are exactly the same as a for real database columns.
-Actually the only difference is that you wont be able to query on these attributes (unless you use JSON or Postgres HStore types) and that you don't need to do a migration to add / remove an attribute.
+Type casting rules and attribute behavior are exactly the same as for real database columns.
+Actually the only difference is that you won't be able to query on these attributes (unless you use JSON or Postgres HStore types) and that you don't need to do a migration to add / remove an attribute.
 
-If not, please fill an issue.
+If not, then please fill in an issue.
 
 ## Serialization methods
 
@@ -134,7 +134,7 @@ Since HStore can only store strings:
   - `any` attributes will be converted to string
 
 If you use HStore because you need to be able to query the store from SQL, and any of these limitations are an issue for you,
-than you could probably use the JSON column type, which do not suffer from these limitations and is also queriable. 
+then you could probably use the JSON column type, which do not suffer from these limitations and is also queriable. 
 
 ## Contributing
 
