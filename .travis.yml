@@ -1,8 +1,14 @@
 language: ruby
 
+before_install:
+  - gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
+  - gem install bundler -v '< 2'
+
 rvm:
-  - 2.3.5
-  - 2.4.4
+  - 2.3.8
+  - 2.4.6
+  - 2.5.5
+  - 2.6.2
 gemfile:
   - gemfiles/Gemfile.ar-4.2
   - gemfiles/Gemfile.ar-5.0
@@ -18,7 +24,9 @@ env:
 
 matrix:
   exclude:
-    - rvm: 2.3.5
+    - rvm: 2.3.8
+      gemfile: 'gemfiles/Gemfile.ar-master'
+    - rvm: 2.4.6
       gemfile: 'gemfiles/Gemfile.ar-master'
 
 addons:
