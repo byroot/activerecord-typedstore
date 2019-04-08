@@ -201,7 +201,27 @@ describe ActiveRecord::TypedStore::TypedHash do
         hash.merge!(source: '')
         expect(hash[:source]).to be == 'web'
       end
+
     end
+
+    describe '#except' do
+
+      it 'does not set the default for ignored keys' do
+        hash = hash_class.new(source: 'foo')
+        expect(hash.except(:source)).to_not have_key(:source)
+      end
+
+    end
+
+    describe '#slice' do
+
+      it 'does not set the default for ignored keys' do
+        hash = hash_class.new(source: 'foo')
+        expect(hash.slice(:not_source)).to_not have_key(:source)
+      end
+
+    end
+
   end
 
   context 'unknown columns' do

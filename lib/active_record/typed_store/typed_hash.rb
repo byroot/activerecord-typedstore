@@ -15,6 +15,9 @@ module ActiveRecord::TypedStore
       end
     end
 
+    delegate :with_indifferent_access, to: :to_h
+    delegate :slice, :except, :without, to: :with_indifferent_access
+
     def initialize(constructor={})
       super()
       update(defaults_hash)
