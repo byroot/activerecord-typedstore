@@ -8,18 +8,16 @@ module ActiveRecord::TypedStore
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :typed_stores
+      class_attribute :typed_stores, :store_accessors
       self.typed_stores = {}
+      self.store_accessors = Set.new
     end
 
     module ClassMethods
-      def store_accessors
-        typed_stores.each_value.flat_map(&:accessors)
-      end
-
       def typed_store(store_attribute, options={}, &block)
         dsl = DSL.new(store_attribute, options, &block)
         self.typed_stores = self.typed_stores.merge(store_attribute => dsl)
+        self.store_accessors = typed_stores.each_value.flat_map(&:accessors).map { |a| -a.to_s }.to_set
 
         typed_klass = TypedHash.create(dsl.fields.values)
         const_set("#{store_attribute}_hash".camelize, typed_klass)
@@ -58,7 +56,7 @@ module ActiveRecord::TypedStore
       def define_typed_store_attribute_methods
         return if @typed_store_attribute_methods_generated
         store_accessors.each do |attribute|
-          define_attribute_method(attribute.to_s)
+          define_attribute_method(attribute)
           undefine_before_type_cast_method(attribute)
         end
         @typed_store_attribute_methods_generated = true
@@ -82,19 +80,19 @@ module ActiveRecord::TypedStore
     end
 
     def clear_attribute_change(attr_name)
-      return if self.class.store_accessors.include?(normalize_attribute(attr_name))
+      return if self.class.store_accessors.include?(attr_name.to_s)
       super
     end
 
     def read_attribute(attr_name)
-      if self.class.store_accessors.include?(normalize_attribute(attr_name))
+      if self.class.store_accessors.include?(attr_name.to_s)
         return public_send(attr_name)
       end
       super
     end
 
     def query_attribute(attr_name)
-      if self.class.store_accessors.include?(attr_name.to_sym)
+      if self.class.store_accessors.include?(attr_name.to_s)
         value = public_send(attr_name)
 
         case value
@@ -109,15 +107,6 @@ module ActiveRecord::TypedStore
         end
       else
         super
-      end
-    end
-
-    def normalize_attribute(attr)
-      case attr
-      when Symbol
-        attr
-      else
-        attr.to_s.to_sym
       end
     end
   end
