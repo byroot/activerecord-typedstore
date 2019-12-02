@@ -339,13 +339,13 @@ shared_examples 'any model' do
   describe 'decimal attributes' do
 
     it 'has the defined default as initial value' do
-      expect(model.total_price).to be == BigDecimal.new('4.2')
+      expect(model.total_price).to be == BigDecimal('4.2')
       expect(model.total_price).to be_a BigDecimal
     end
 
     it 'properly cast assigned value to decimal' do
       model.shipping_cost = 4.2
-      expect(model.shipping_cost).to be == BigDecimal.new('4.2')
+      expect(model.shipping_cost).to be == BigDecimal('4.2')
       expect(model.shipping_cost).to be_a BigDecimal
     end
 
@@ -357,7 +357,7 @@ shared_examples 'any model' do
 
     it 'retreive a BigDecimal instance' do
       model.update(shipping_cost: 4.2)
-      expect(model.reload.shipping_cost).to be == BigDecimal.new('4.2')
+      expect(model.reload.shipping_cost).to be == BigDecimal('4.2')
       expect(model.reload.shipping_cost).to be_a BigDecimal
     end
 
@@ -367,17 +367,17 @@ shared_examples 'any model' do
     end
 
     it 'positive values are considered present' do
-      model.shipping_cost = BigDecimal.new('4.2')
+      model.shipping_cost = BigDecimal('4.2')
       expect(model.shipping_cost?).to be true
     end
 
     it 'negative values are considered present' do
-      model.shipping_cost = BigDecimal.new('-4.2')
+      model.shipping_cost = BigDecimal('-4.2')
       expect(model.shipping_cost?).to be true
     end
 
     it '0 is not considered present' do
-      model.shipping_cost = BigDecimal.new('0')
+      model.shipping_cost = BigDecimal('0')
       expect(model.shipping_cost?).to be false
     end
 
