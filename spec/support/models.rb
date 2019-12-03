@@ -2,12 +2,6 @@ require 'active_record'
 require 'json'
 require 'yaml'
 
-AR_VERSION = Gem::Version.new(ActiveRecord::VERSION::STRING)
-AR_4_0 = Gem::Version.new('4.0')
-AR_4_1 = Gem::Version.new('4.1.0.beta')
-AR_4_2 = Gem::Version.new('4.2.0-rc1')
-AR_5_0 = Gem::Version.new('5.0.0')
-
 ActiveRecord::Base.time_zone_aware_attributes = ENV['TIMEZONE_AWARE'] != '0'
 ActiveRecord::Base.configurations = {
   'test_sqlite3' => { 'adapter' => 'sqlite3', 'database' => '/tmp/typed_store.db' },
@@ -80,7 +74,7 @@ def define_store_with_attributes(**options)
   end
 end
 
-MigrationClass = AR_VERSION >= AR_5_0 ? ActiveRecord::Migration["5.0"] : ActiveRecord::Migration
+MigrationClass = ActiveRecord::Migration["5.0"]
 class CreateAllTables < MigrationClass
 
   def self.recreate_table(name, *args, &block)
@@ -98,13 +92,11 @@ class CreateAllTables < MigrationClass
       ActiveRecord::Base.establish_connection(ENV['POSTGRES_URL'] || :test_postgresql)
       recreate_table(:postgresql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
 
-      if AR_VERSION >= AR_4_0
-        execute "create extension if not exists hstore"
-        recreate_table(:postgres_hstore_typed_store_models) { |t| t.hstore :settings; t.text :untyped_settings }
+      execute "create extension if not exists hstore"
+      recreate_table(:postgres_hstore_typed_store_models) { |t| t.hstore :settings; t.text :untyped_settings }
 
-        if ENV['POSTGRES_JSON']
-          recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-        end
+      if ENV['POSTGRES_JSON']
+        recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
       end
     end
 
@@ -163,9 +155,8 @@ if ENV['POSTGRES']
     store :untyped_settings, accessors: [:title]
   end
 
-  if AR_VERSION >= AR_4_0
-
-    class PostgresHstoreTypedStoreModel < ActiveRecord::Base
+  if ENV['POSTGRES_JSON']
+    class PostgresJsonTypedStoreModel < ActiveRecord::Base
       establish_connection ENV['POSTGRES_URL'] || :test_postgresql
       store :untyped_settings, accessors: [:title]
 
@@ -173,35 +164,6 @@ if ENV['POSTGRES']
       define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
       define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
     end
-
-    if ENV['POSTGRES_JSON']
-
-      if AR_VERSION >= AR_4_2
-
-        class PostgresJsonTypedStoreModel < ActiveRecord::Base
-          establish_connection ENV['POSTGRES_URL'] || :test_postgresql
-          store :untyped_settings, accessors: [:title]
-
-          define_store_with_attributes(coder: ColumnCoder.new(AsJson))
-          define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
-          define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
-        end
-
-      else
-
-        class PostgresJsonTypedStoreModel < ActiveRecord::Base
-          establish_connection ENV['POSTGRES_URL'] || :test_postgresql
-          store :untyped_settings, accessors: [:title]
-
-          define_store_with_attributes(coder: ColumnCoder.new(AsJson))
-          define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
-          define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
-        end
-
-      end
-
-    end
-
   end
 end
 
@@ -267,5 +229,4 @@ Models = [
 ]
 Models << MysqlRegularARModel if defined?(MysqlRegularARModel)
 Models << PostgresqlRegularARModel if defined?(PostgresqlRegularARModel)
-Models << PostgresHstoreTypedStoreModel if defined?(PostgresHstoreTypedStoreModel)
 Models << PostgresJsonTypedStoreModel if defined?(PostgresJsonTypedStoreModel)

@@ -1,39 +1,33 @@
+sudo: false
 language: ruby
+cache: bundler
 
 before_install:
   - gem uninstall -v '>= 2' -i $(rvm gemdir)@global -ax bundler || true
   - gem install bundler -v '< 2'
 
 rvm:
-  - 2.3.8
-  - 2.4.6
-  - 2.5.5
-  - 2.6.2
+  - "2.5"
+  - "2.6"
 gemfile:
-  - gemfiles/Gemfile.ar-4.2
-  - gemfiles/Gemfile.ar-5.0
-  - gemfiles/Gemfile.ar-5.1
   - gemfiles/Gemfile.ar-5.2
+  - gemfiles/Gemfile.ar-6.0
   - gemfiles/Gemfile.ar-master
 
 env:
-  - TIMEZONE_AWARE=1 POSTGRES=1 MYSQL=1
-  - TIMEZONE_AWARE=0 POSTGRES=1 MYSQL=1
-  - TIMEZONE_AWARE=1 POSTGRES=1 POSTGRES_JSON=1
-  - TIMEZONE_AWARE=0 POSTGRES=1 POSTGRES_JSON=1
+  - TIMEZONE_AWARE=1 POSTGRES=1 MYSQL=1 POSTGRES_JSON=1
+  - TIMEZONE_AWARE=0 POSTGRES=1 MYSQL=1 POSTGRES_JSON=1
 
 matrix:
   exclude:
-    - rvm: 2.3.8
-      gemfile: 'gemfiles/Gemfile.ar-master'
-    - rvm: 2.4.6
+    - rvm: "2.6"
+      gemfile: 'gemfiles/Gemfile.6-0'
+    - rvm: "2.6"
       gemfile: 'gemfiles/Gemfile.ar-master'
 
-addons:
-  postgresql: 9.3
-
-sudo: false
-cache: bundler
+services:
+  - mysql
+  - postgresql
 
 before_script:
   - mysql -e 'create database typed_store_test;'

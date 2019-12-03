@@ -70,20 +70,11 @@ shared_examples 'any model' do
       }.to change { !!model.age_changed? }.from(true).to(false)
     end
 
-    if AR_VERSION >= AR_4_2
-      it 'can be restored individually' do
-        model.age = 24
-        expect {
-          model.restore_age!
-        }.to change { model.age }.from(24).to(12)
-      end
-    else
-      it 'can be reset individually' do
-        model.age = 24
-        expect {
-          model.reset_age!
-        }.to change { model.age }.from(24).to(12)
-      end
+    it 'can be restored individually' do
+      model.age = 24
+      expect {
+        model.restore_age!
+      }.to change { model.age }.from(24).to(12)
     end
 
     it 'does not dirty track assigning the same boolean' do
@@ -432,47 +423,25 @@ shared_examples 'any model' do
     let(:time) { time_string.respond_to?(:in_time_zone) ? time_string.in_time_zone : Time.parse(time_string) }
 
     context "with ActiveRecord #{ActiveRecord::VERSION::STRING}" do
-      if AR_VERSION < AR_4_0
-        it 'has the defined default as initial value' do
-          model.save
-          expect(model.published_at).to be == time
-        end
+      it 'has the defined default as initial value' do
+        model.save
+        expect(model.reload.published_at).to be == time
+      end
 
+      it 'retreive a time instance' do
+        model.update(published_at: time)
+        expect(model.reload.published_at).to be == time
+      end
+
+      if ActiveRecord::Base.time_zone_aware_attributes
         it 'properly cast assigned value to time' do
           model.remind_at = time_string
           expect(model.remind_at).to be == time
         end
-        it 'properly cast assigned value to time on save' do
-          model.remind_at = time_string
-          model.save
-          model.reload
-          expect(model.remind_at).to be == time
-        end
-        it 'retreive a Time instance' do
-          model.update(published_at: time)
-          expect(model.reload.published_at).to be == time
-        end
       else
-        it 'has the defined default as initial value' do
-          model.save
-          expect(model.reload.published_at).to be == time
-        end
-
-        it 'retreive a time instance' do
-          model.update(published_at: time)
-          expect(model.reload.published_at).to be == time
-        end
-
-        if ActiveRecord::Base.time_zone_aware_attributes
-          it 'properly cast assigned value to time' do
-            model.remind_at = time_string
-            expect(model.remind_at).to be == time
-          end
-        else
-          it 'properly cast assigned value to time' do
-            model.remind_at = time_string
-            expect(model.remind_at).to be == time
-          end
+        it 'properly cast assigned value to time' do
+          model.remind_at = time_string
+          expect(model.remind_at).to be == time
         end
       end
     end
@@ -485,61 +454,27 @@ shared_examples 'any model' do
     let(:time) { datetime_string.respond_to?(:in_time_zone) ? datetime_string.in_time_zone : Time.parse(datetime_string) }
 
     context "with ActiveRecord #{ActiveRecord::VERSION::STRING}" do
+      it 'has the defined default as initial value' do
+        model.save
+        expect(model.reload.published_at).to be == datetime
+      end
 
-      if AR_VERSION < AR_4_0
+      it 'retreive a DateTime instance' do
+        model.update(published_at: datetime)
+        expect(model.reload.published_at).to be == datetime
+      end
 
-        it 'has the defined default as initial value' do
-          model.save
-          expect(model.published_at).to be == time
-        end
-
+      if ActiveRecord::Base.time_zone_aware_attributes
         it 'properly cast assigned value to time' do
           model.remind_at = datetime_string
           expect(model.remind_at).to be == time
         end
-
-        it 'properly cast assigned value to time on save' do
-          model.remind_at = datetime_string
-          model.save
-          model.reload
-          expect(model.remind_at).to be == time
-        end
-
-        it 'retreive a Time instance' do
-          model.update(published_at: datetime)
-          expect(model.reload.published_at).to be == time
-        end
-
       else
-
-        it 'has the defined default as initial value' do
-          model.save
-          expect(model.reload.published_at).to be == datetime
+        it 'properly cast assigned value to datetime' do
+          model.remind_at = datetime_string
+          expect(model.remind_at).to be == datetime
         end
-
-        it 'retreive a DateTime instance' do
-          model.update(published_at: datetime)
-          expect(model.reload.published_at).to be == datetime
-        end
-
-        if ActiveRecord::Base.time_zone_aware_attributes
-
-          it 'properly cast assigned value to time' do
-            model.remind_at = datetime_string
-            expect(model.remind_at).to be == time
-          end
-
-        else
-
-          it 'properly cast assigned value to datetime' do
-            model.remind_at = datetime_string
-            expect(model.remind_at).to be == datetime
-          end
-
-        end
-
       end
-
     end
 
     it 'nillify unparsable datetimes' do
@@ -895,15 +830,6 @@ describe PostgresqlRegularARModel do
   it_should_behave_like 'a db backed model'
   it_should_behave_like 'a model supporting arrays', true
 end if defined?(PostgresqlRegularARModel)
-
-describe PostgresHstoreTypedStoreModel do
-  if AR_VERSION >= AR_4_1
-    pending('TODO: Rails edge HStore compatibiliy')
-  else
-    it_should_behave_like 'any model'
-    it_should_behave_like 'a store', false
-  end
-end if defined?(PostgresHstoreTypedStoreModel)
 
 describe PostgresJsonTypedStoreModel do
   it_should_behave_like 'any model'
