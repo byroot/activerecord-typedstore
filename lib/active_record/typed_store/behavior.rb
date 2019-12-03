@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord::TypedStore
   module Behavior
     extend ActiveSupport::Concern

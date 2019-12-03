@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_record/typed_store/dsl'
 require 'active_record/typed_store/behavior'
 require 'active_record/typed_store/type'

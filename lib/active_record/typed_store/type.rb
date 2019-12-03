@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord::TypedStore
   class Type < ActiveRecord::Type::Serialized
     def initialize(typed_hash_klass, coder, subtype)

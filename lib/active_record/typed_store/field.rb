@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord::TypedStore
   class Field
     attr_reader :array, :blank, :name, :default, :type, :null, :accessor, :type_sym
