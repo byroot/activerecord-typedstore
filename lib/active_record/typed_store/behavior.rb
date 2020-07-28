@@ -53,7 +53,7 @@ module ActiveRecord::TypedStore
       super
     end
 
-    def query_attribute(attr_name)
+    def attribute?(attr_name)
       if self.class.store_accessors.include?(attr_name.to_s)
         value = public_send(attr_name)
 
