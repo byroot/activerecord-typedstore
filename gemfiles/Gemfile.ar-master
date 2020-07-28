@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+ENV['PG_VERSION'] = '~> 1.1'
 gemspec path: '..'
 
 gem 'activerecord', github: 'rails/rails'
