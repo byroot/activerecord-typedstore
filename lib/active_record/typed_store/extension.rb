@@ -23,6 +23,7 @@ module ActiveRecord::TypedStore
 
       if ActiveRecord.version >= Gem::Version.new('6.1.0.alpha')
         attribute(store_attribute) do |subtype|
+          subtype = subtype.subtype if subtype.is_a?(Type)
           Type.new(typed_klass, dsl.coder, subtype)
         end
       else
