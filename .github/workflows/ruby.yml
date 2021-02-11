@@ -9,10 +9,12 @@ jobs:
     strategy:
       matrix:
         ruby: [2.6, 2.7]
-        gemfile: [Gemfile.ar-5.2, Gemfile.ar-6.0, Gemfile.ar-master]
+        gemfile: [Gemfile.ar-5.2, Gemfile.ar-6.0, Gemfile.ar-6.1, Gemfile.ar-master]
         exclude:
           - ruby: 2.6
             gemfile: Gemfile.ar-6.0
+          - ruby: 2.6
+            gemfile: Gemfile.ar-6.1
           - ruby: 2.6
             gemfile: Gemfile.ar-master
         timezone_aware: [0, 1]
