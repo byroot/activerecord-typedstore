@@ -867,9 +867,4 @@ describe InheritedTypedStoreModel do
     model.update(new_attribute: 42)
     expect(model.settings[:new_attribute]).to be == '42'
   end
-
-  it 'inherits attributes from parent' do
-    skip 'to be implemented'
-    expect(model.total_price).to be == 4.2
-  end
 end
