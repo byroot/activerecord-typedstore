@@ -854,3 +854,17 @@ describe MarshalTypedStoreModel do
   it_should_behave_like 'a store'
   it_should_behave_like 'a model supporting arrays'
 end
+
+describe InheritedTypedStoreModel do
+  let(:model) { described_class.new }
+
+  it 'can be serialized' do
+    model.update(new_attribute: "foobar")
+    expect(model.reload.new_attribute).to be == "foobar"
+  end
+
+  it 'is casted' do
+    model.update(new_attribute: 42)
+    expect(model.settings[:new_attribute]).to be == '42'
+  end
+end
