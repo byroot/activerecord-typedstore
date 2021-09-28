@@ -723,6 +723,11 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
       expect(model.explicit_settings[:signup][:counter]).to be_nil
     end
 
+    it 'coerce hashes to HashWithIndifferentAccess' do # this is actually Rails behavior
+      model.signup[:metadata] = { "signed_up_at" => Time.now }
+      expect(model.signup[:metadata]).to be_a ActiveSupport::HashWithIndifferentAccess
+    end
+
   end
 end
 
