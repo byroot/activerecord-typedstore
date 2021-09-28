@@ -846,6 +846,11 @@ describe YamlTypedStoreModel do
   it_should_behave_like 'any model'
   it_should_behave_like 'a store'
   it_should_behave_like 'a model supporting arrays'
+
+  it 'nested hashes are not serialized as HashWithIndifferentAccess' do
+    model = described_class.create!
+    expect(model.settings_before_type_cast).not_to include('HashWithIndifferentAccess')
+  end
 end
 
 describe JsonTypedStoreModel do

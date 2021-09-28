@@ -23,8 +23,8 @@ module ActiveRecord::TypedStore
       define_method(method) do |value|
         return if value.nil?
 
-        if value.respond_to?(:to_h)
-          super(value.to_h)
+        if value.respond_to?(:to_hash)
+          super(value.to_hash)
         else
           raise ArgumentError, "ActiveRecord::TypedStore expects a hash as a column value, #{value.class} received"
         end
