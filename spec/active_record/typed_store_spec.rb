@@ -109,6 +109,18 @@ shared_examples 'any model' do
         model.name = ""
       }.to_not change { !!model.name_changed? }
     end
+
+    it 'does not include whole fields (settings) to #changes' do
+      expect {
+        model.name = "Smith"
+      }.to change { model.changes }.from({}).to({"name"=>["", "Smith"]})
+    end
+
+    it 'include not typed json field to #changes' do
+      expect {
+        model.untyped_settings = {name: "Smith"}
+      }.to change { model.changes }.from({}).to({"untyped_settings"=>[{}, {"name"=>"Smith"}]})
+    end
   end
 
   describe 'unknown attribute' do
@@ -656,7 +668,6 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
     it 'still has casting a default handling' do
       expect(model.settings[:country]).to be == 'Canada'
     end
-
   end
 
   describe 'with no accessors' do

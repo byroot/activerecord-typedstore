@@ -32,7 +32,7 @@ module ActiveRecord::TypedStore
     end
 
     def changes
-      changes = super
+      changes = super.except(*self.class.typed_stores.keys.map(&:to_s))
       self.class.store_accessors.each do |attr|
         if send("#{attr}_changed?")
           changes[attr] = [send("#{attr}_was"), send(attr)]
