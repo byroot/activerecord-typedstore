@@ -92,6 +92,12 @@ typed_store :settings do |s|
   s.string :postal_code, accessor: false
 end
 
+# an inline DSL is also available, to keep it a one-liner like with basic Rails store
+typed_store :settings, email: :string, publish_at: :datetime, age: [:integer, null: false], public: [:boolean, default: false, null: false]
+
+# it's even possible to send `typed_store` basic options prefixing them with an underscore
+typed_store :settings, _coder: JSON, email: :string, publish_at: :datetime
+
 ```
 
 Type casting rules and attribute behavior are exactly the same as for real database columns.
@@ -135,6 +141,25 @@ Since HStore can only store strings:
 
 If you use HStore because you need to be able to query the store from SQL, and any of these limitations are an issue for you,
 then you could probably use the JSON column type, which do not suffer from these limitations and is also queriable. 
+
+## Setting a default coder
+
+If you desire to use a different default coder, it is possible by simply setting it in the base
+model class of your app.
+
+In this example, we are setting it `ApplicationRecord`, so all models of our _Rails_ application
+behave the same. It is being set to `StrippedCoder`, which ensures that if a field is nil or empty,
+it is being excluded from the persisted hash, keeping it tidy and minimalistic.
+
+```ruby
+class ApplicationRecord < ActiveRecord::Base
+  typed_store_coder ActiveRecord::TypedStore::StrippedCoder.new
+end
+
+class User < ApplicationRecord
+  typed_store :preferences, auto_close_modals: :boolean, keep_me_signed_in: [:boolean, default: true]
+end
+```
 
 ## Contributing
 

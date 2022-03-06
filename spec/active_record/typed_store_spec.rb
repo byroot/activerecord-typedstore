@@ -903,12 +903,10 @@ describe JsonTypedStoreModelWithDefaultStrippedCoder do
 
   it 'exclude nil attributes' do
     model.update! character_name: "Something"
-    puts model.reload.inline_settings
     expect(model.reload.inline_settings.keys).to include "character_name"
     expect(model.reload.character_name).to eq "Something"
 
     model.update! character_name: ""
-    puts model.reload.inline_settings
     expect(model.reload.inline_settings.keys).not_to include "character_name"
     expect(model.reload.character_name).to be_nil
   end
@@ -918,5 +916,5 @@ describe JsonTypedStoreModelWithDefaultStrippedCoder do
     expect(model.reload.inline_settings.keys).to include "npc"
     expect(model.reload.npc).to eq false
   end
-  
+
 end
