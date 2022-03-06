@@ -6,8 +6,8 @@ module ActiveRecord::TypedStore
   class DSL
     attr_reader :fields, :coder
 
-    def initialize(attribute_name, options)
-      @coder = options.fetch(:coder) { default_coder(attribute_name) }
+    def initialize(attribute_name, options, model_default_typed_store_coder)
+      @coder = options[:coder] || model_default_typed_store_coder || default_coder(attribute_name)
       @accessors = options[:accessors]
       @accessors = [] if options[:accessors] == false
       @fields = {}
@@ -23,6 +23,8 @@ module ActiveRecord::TypedStore
         ActiveRecord::Coders::YAMLColumn.new(attribute_name)
       end
     end
+
+    DEFAULT_TYPED_STORE_CODER_METHOD = :default_typed_store_coder
 
     def accessors
       @accessors || @fields.values.select(&:accessor).map(&:name)

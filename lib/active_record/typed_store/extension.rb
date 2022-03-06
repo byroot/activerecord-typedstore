@@ -5,6 +5,7 @@ require 'active_record/typed_store/behavior'
 require 'active_record/typed_store/type'
 require 'active_record/typed_store/typed_hash'
 require 'active_record/typed_store/identity_coder'
+require 'active_record/typed_store/stripped_coder'
 
 module ActiveRecord::TypedStore
   module Extension
@@ -16,7 +17,7 @@ module ActiveRecord::TypedStore
         class_attribute :typed_stores, :store_accessors, instance_accessor: false
       end
 
-      dsl = DSL.new(store_attribute, options, &block)
+      dsl = DSL.new(store_attribute, options, @typed_store_coder, &block)
       self.typed_stores = (self.typed_stores || {}).merge(store_attribute => dsl)
       self.store_accessors = typed_stores.each_value.flat_map(&:accessors).map { |a| -a.to_s }.to_set
 
@@ -64,6 +65,10 @@ module ActiveRecord::TypedStore
           s.send type, name, **(settings || {})
         end
       end
+    end
+
+    def typed_store_coder(coder)
+      @typed_store_coder = coder
     end
   end
 end
