@@ -206,13 +206,18 @@ class JsonTypedStoreModel < ActiveRecord::Base
   define_store_with_inline_dsl(coder: ColumnCoder.new(JSON))
 end
 
-class JsonTypedStoreModelWithDefaultStrippedCoder < ActiveRecord::Base
+class JsonTypedStoreModelWithDefaultStrippedCoderSuperClass < ActiveRecord::Base
+  self.table_name = 'json_typed_store_models'
+  establish_connection :test_sqlite3
+
+  typed_store_coder ActiveRecord::TypedStore::StrippedCoder.new
+end
+
+class JsonTypedStoreModelWithDefaultStrippedCoder < JsonTypedStoreModelWithDefaultStrippedCoderSuperClass
   self.table_name = 'json_typed_store_models'
   establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
 
-  # typed_store_coder JSON
-  typed_store_coder ActiveRecord::TypedStore::StrippedCoder.new
   define_store_with_inline_dsl
 end
 

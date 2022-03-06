@@ -17,7 +17,7 @@ module ActiveRecord::TypedStore
         class_attribute :typed_stores, :store_accessors, instance_accessor: false
       end
 
-      dsl = DSL.new(store_attribute, options, @typed_store_coder, &block)
+      dsl = DSL.new(store_attribute, options, typed_store_coder, &block)
       self.typed_stores = (self.typed_stores || {}).merge(store_attribute => dsl)
       self.store_accessors = typed_stores.each_value.flat_map(&:accessors).map { |a| -a.to_s }.to_set
 
@@ -67,8 +67,12 @@ module ActiveRecord::TypedStore
       end
     end
 
-    def typed_store_coder(coder)
-      @typed_store_coder = coder
+    def typed_store_coder(coder = nil)
+      return @typed_store_coder = coder if coder
+
+      result = @typed_store_coder
+      result ||= ancestors.lazy.drop(1).filter_map { |a| a.typed_store_coder if a.respond_to?(:typed_store_coder) }.first
+      result
     end
   end
 end

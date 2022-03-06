@@ -899,6 +899,7 @@ describe InheritedTypedStoreModel do
 end
 
 describe JsonTypedStoreModelWithDefaultStrippedCoder do
+
   let(:model) { described_class.new }
 
   it 'exclude nil attributes' do
