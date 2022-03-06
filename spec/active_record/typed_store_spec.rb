@@ -744,7 +744,7 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
 
     it 'set default value' do
       expect(model.level).to eq 2
-      expect(model.level).to eq true
+      expect(model.npc).to eq true
     end
 
   end
