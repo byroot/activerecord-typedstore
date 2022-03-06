@@ -110,6 +110,7 @@ If not, then please fill in an issue.
 Just like for store, you can use any custom coder:
 
 ```ruby
+
 module Base64MarshalCoder
   extend self
 
@@ -127,6 +128,7 @@ end
 typed_store :settings, coder: Base64MarshalCoder do |s|
   # ...
 end
+
 ```
 
 If you want to use JSON column or Postgres HStore types, then you can pass in `ActiveRecord::TypedStore::IdentityCoder` as the coder.
@@ -152,6 +154,7 @@ behave the same. It is being set to `StrippedCoder`, which ensures that if a fie
 it is being excluded from the persisted hash, keeping it tidy and minimalistic.
 
 ```ruby
+
 class ApplicationRecord < ActiveRecord::Base
   typed_store_coder ActiveRecord::TypedStore::StrippedCoder.new
 end
@@ -159,6 +162,7 @@ end
 class User < ApplicationRecord
   typed_store :preferences, auto_close_modals: :boolean, keep_me_signed_in: [:boolean, default: true]
 end
+
 ```
 
 ## Contributing
