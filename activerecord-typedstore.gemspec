@@ -28,4 +28,11 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'pg', ENV.fetch('PG_VERSION', '~> 0.18')
   spec.add_development_dependency 'mysql2', '> 0.3'
   spec.add_development_dependency 'database_cleaner', '~> 1'
+  spec.add_development_dependency 'pry-byebug'
+  spec.add_development_dependency 'pry-doc'
+  spec.add_development_dependency 'pry-stack_explorer'
+  spec.add_development_dependency 'pry-rails'
+  spec.add_development_dependency 'guard'
+  spec.add_development_dependency 'guard-rspec'
+  spec.add_development_dependency 'ruby_jard'
 end

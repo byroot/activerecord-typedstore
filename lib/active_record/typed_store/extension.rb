@@ -9,6 +9,8 @@ require 'active_record/typed_store/identity_coder'
 module ActiveRecord::TypedStore
   module Extension
     def typed_store(store_attribute, options={}, &block)
+      return typed_store_inline(store_attribute, options) unless block_given?
+
       unless self < Behavior
         include Behavior
         class_attribute :typed_stores, :store_accessors, instance_accessor: false
@@ -45,6 +47,21 @@ module ActiveRecord::TypedStore
 
         define_method("restore_#{accessor_name}!") do
           send("#{accessor_name}=", send("#{accessor_name}_was"))
+        end
+      end
+    end
+
+    def typed_store_inline(store_attribute, options)
+      typed_store_options = {}
+      options.keys.each do |k|
+        ks = k.to_s
+        typed_store_options[ks.delete_prefix("_").to_sym] = options.delete(k) if ks.start_with?("_")
+      end
+
+      typed_store store_attribute, **typed_store_options do |s|
+        options.each do |name, raw_settings|
+          type, settings = Array.wrap(raw_settings)
+          s.send type, name, **(settings || {})
         end
       end
     end

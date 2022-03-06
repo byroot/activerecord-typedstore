@@ -729,6 +729,25 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
     end
 
   end
+
+  describe 'attributes defined with the inline DSL' do
+
+    it 'coerce string attribute' do
+      model.update! character_name: 123
+      expect(model.reload.character_name).to eq "123"
+    end
+
+    it 'coerce integer attribute' do
+      model.update! level: "42"
+      expect(model.reload.level).to eq 42
+    end
+
+    it 'set default value' do
+      expect(model.level).to eq 2
+      expect(model.level).to eq true
+    end
+
+  end
 end
 
 shared_examples 'a db backed model' do

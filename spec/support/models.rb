@@ -74,6 +74,11 @@ def define_store_with_attributes(**options)
   end
 end
 
+def define_store_with_inline_dsl(**options)
+  underscored_options = options.transform_keys { |k| :"_#{k}" }
+  typed_store :inline_settings, underscored_options.merge(character_name: :string, level: [:integer, default: 2], npc: [:boolean, null: true, default: true])
+end
+
 MigrationClass = ActiveRecord::Migration["5.0"]
 class CreateAllTables < MigrationClass
 
@@ -96,15 +101,15 @@ class CreateAllTables < MigrationClass
       recreate_table(:postgres_hstore_typed_store_models) { |t| t.hstore :settings; t.text :untyped_settings }
 
       if ENV['POSTGRES_JSON']
-        recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+        recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings; t.json :inline_settings }
       end
     end
 
     ActiveRecord::Base.establish_connection(:test_sqlite3)
     recreate_table(:sqlite3_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
-    recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-    recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-    recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings; t.text :inline_settings }
+    recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings; t.text :inline_settings }
+    recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings; t.text :inline_settings }
   end
 end
 ActiveRecord::Migration.verbose = true
@@ -163,6 +168,7 @@ if ENV['POSTGRES']
       define_store_with_attributes(coder: ColumnCoder.new(AsJson))
       define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
       define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
+      define_store_with_inline_dsl(coder: ColumnCoder.new(AsJson))
     end
   end
 end
@@ -179,6 +185,7 @@ class YamlTypedStoreModel < ActiveRecord::Base
   define_store_with_attributes
   define_store_with_no_attributes
   define_store_with_partial_attributes
+  define_store_with_inline_dsl
 end
 
 class InheritedTypedStoreModel < YamlTypedStoreModel
@@ -196,6 +203,7 @@ class JsonTypedStoreModel < ActiveRecord::Base
   define_store_with_attributes(coder: ColumnCoder.new(JSON))
   define_store_with_no_attributes(coder: ColumnCoder.new(JSON))
   define_store_with_partial_attributes(coder: ColumnCoder.new(JSON))
+  define_store_with_inline_dsl(coder: ColumnCoder.new(JSON))
 end
 
 module MarshalCoder
@@ -218,6 +226,7 @@ class MarshalTypedStoreModel < ActiveRecord::Base
   define_store_with_attributes(coder: ColumnCoder.new(MarshalCoder))
   define_store_with_no_attributes(coder: ColumnCoder.new(MarshalCoder))
   define_store_with_partial_attributes(coder: ColumnCoder.new(MarshalCoder))
+  define_store_with_inline_dsl(coder: ColumnCoder.new(MarshalCoder))
 end
 
 Models = [
