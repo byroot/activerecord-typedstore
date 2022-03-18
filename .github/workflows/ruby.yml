@@ -7,16 +7,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Ruby ${{ matrix.ruby }}
     strategy:
+      fail-fast: false
       matrix:
-        ruby: [2.6, 2.7]
-        gemfile: [Gemfile.ar-5.2, Gemfile.ar-6.0, Gemfile.ar-6.1, Gemfile.ar-master]
-        exclude:
-          - ruby: 2.6
-            gemfile: Gemfile.ar-6.0
-          - ruby: 2.6
-            gemfile: Gemfile.ar-6.1
-          - ruby: 2.6
-            gemfile: Gemfile.ar-master
+        ruby: ['2.7', '3.0', '3.1']
+        gemfile: [Gemfile.ar-6.1, Gemfile.ar-7.0, Gemfile.ar-master]
         timezone_aware: [0, 1]
     env:
       BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}
@@ -24,24 +18,35 @@ jobs:
       POSTGRES: 1
       MYSQL: 1
       POSTGRES_JSON: 1
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: typed_store
+          POSTGRES_PASSWORD: typed_store
+          POSTGRES_DB: typed_store_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      mysql:
+        image: mysql:8.0.21
+        env:
+          MYSQL_USER: typed_store
+          MYSQL_PASSWORD: typed_store
+          MYSQL_DATABASE: typed_store_test
+        ports:
+          - 3306:3306
     steps:
-    - name: Check out code
-      uses: actions/checkout@v2
-    - name: Set up Ruby ${{ matrix.ruby }}
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby }}
-        bundler-cache: true
-    - name: Start MySQL and create DB
-      run: |
-        sudo systemctl start mysql.service
-        mysql -uroot -proot -e 'create database typed_store_test;'
-    - name: Start PostgresQL and create DB
-      run: |
-        sudo sed -i s/md5/trust/g /etc/postgresql/*/main/pg_hba.conf
-        sudo systemctl start postgresql.service
-        sudo -u postgres createuser --createdb --superuser ${USER}
-        createdb typed_store_test
-        echo "POSTGRES_URL=postgres://localhost/typed_store_test" >> $GITHUB_ENV
-    - name: Ruby Tests
-      run: bundle exec rake
+      - name: Check out code
+        uses: actions/checkout@v2
+      - name: Set up Ruby ${{ matrix.ruby }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Ruby Tests
+        run: bundle exec rake

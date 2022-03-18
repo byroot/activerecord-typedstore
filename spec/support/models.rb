@@ -3,10 +3,11 @@ require 'json'
 require 'yaml'
 
 ActiveRecord::Base.time_zone_aware_attributes = ENV['TIMEZONE_AWARE'] != '0'
+credentials = { 'database' => 'typed_store_test', 'username' => 'typed_store', 'password' => 'typed_store' }
 ActiveRecord::Base.configurations = {
   'test_sqlite3' => { 'adapter' => 'sqlite3', 'database' => '/tmp/typed_store.db' },
-  'test_postgresql' => { 'adapter' => 'postgresql', 'database' => 'typed_store_test', 'username' => 'postgres' },
-  'test_mysql' => { 'adapter' => 'mysql2', 'database' => 'typed_store_test', 'username' => 'root', 'password' => 'root' },
+  'test_postgresql' => credentials.merge('adapter' => 'postgresql', 'host' => 'localhost', 'port' => 5432),
+  'test_mysql' => credentials.merge('adapter' => 'mysql2', 'host' => 'localhost', 'port' => 3306),
 }
 
 def define_columns(t)
@@ -77,34 +78,29 @@ end
 MigrationClass = ActiveRecord::Migration["5.0"]
 class CreateAllTables < MigrationClass
 
-  def self.recreate_table(name, *args, &block)
-    execute "drop table if exists #{name}"
-    create_table(name, *args, &block)
-  end
-
   def self.up
     if ENV['MYSQL']
       ActiveRecord::Base.establish_connection(:test_mysql)
-      recreate_table(:mysql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+      create_table(:mysql_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
     end
 
     if ENV['POSTGRES']
       ActiveRecord::Base.establish_connection(ENV['POSTGRES_URL'] || :test_postgresql)
-      recreate_table(:postgresql_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
+      create_table(:postgresql_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
 
       execute "create extension if not exists hstore"
-      recreate_table(:postgres_hstore_typed_store_models) { |t| t.hstore :settings; t.text :untyped_settings }
+      create_table(:postgres_hstore_typed_store_models, force: true) { |t| t.hstore :settings; t.text :untyped_settings }
 
       if ENV['POSTGRES_JSON']
-        recreate_table(:postgres_json_typed_store_models) { |t| t.json :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+        create_table(:postgres_json_typed_store_models, force: true) { |t| t.json :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
       end
     end
 
     ActiveRecord::Base.establish_connection(:test_sqlite3)
-    recreate_table(:sqlite3_regular_ar_models) { |t| define_columns(t); t.text :untyped_settings }
-    recreate_table(:yaml_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-    recreate_table(:json_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-    recreate_table(:marshal_typed_store_models) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    create_table(:sqlite3_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
+    create_table(:yaml_typed_store_models, force: true) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    create_table(:json_typed_store_models, force: true) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    create_table(:marshal_typed_store_models, force: true) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
   end
 end
 ActiveRecord::Migration.verbose = true
