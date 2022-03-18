@@ -23,7 +23,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake', '~> 10'
   spec.add_development_dependency 'rspec', '~> 3'
-  spec.add_development_dependency 'coveralls', '~> 0'
   spec.add_development_dependency 'sqlite3', '~> 1'
   spec.add_development_dependency 'pg', ENV.fetch('PG_VERSION', '~> 0.18')
   spec.add_development_dependency 'mysql2', '> 0.3'
