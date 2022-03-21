@@ -14,9 +14,10 @@ module ActiveRecord::TypedStore
         class_attribute :typed_stores, :store_accessors, instance_accessor: false
       end
 
+      store_options = options.slice(:prefix, :suffix)
       dsl = DSL.new(store_attribute, options, &block)
       self.typed_stores = (self.typed_stores || {}).merge(store_attribute => dsl)
-      self.store_accessors = typed_stores.each_value.flat_map(&:accessors).map { |a| -a.to_s }.to_set
+      self.store_accessors = typed_stores.each_value.flat_map { |d| d.accessors.values }.map { |a| -a.to_s }.to_set
 
       typed_klass = TypedHash.create(dsl.fields.values)
       const_set("#{store_attribute}_hash".camelize, typed_klass)
@@ -31,20 +32,20 @@ module ActiveRecord::TypedStore
           Type.new(typed_klass, dsl.coder, subtype)
         end
       end
-      store_accessor(store_attribute, dsl.accessors)
+      store_accessor(store_attribute, dsl.accessors.keys, **store_options)
 
-      dsl.accessors.each do |accessor_name|
-        define_method("#{accessor_name}_changed?") do
+      dsl.accessors.each do |accessor_name, accessor_key|
+        define_method("#{accessor_key}_changed?") do
           send("#{store_attribute}_changed?") &&
             send(store_attribute)[accessor_name] != send("#{store_attribute}_was")[accessor_name]
         end
 
-        define_method("#{accessor_name}_was") do
+        define_method("#{accessor_key}_was") do
           send("#{store_attribute}_was")[accessor_name]
         end
 
-        define_method("restore_#{accessor_name}!") do
-          send("#{accessor_name}=", send("#{accessor_name}_was"))
+        define_method("restore_#{accessor_key}!") do
+          send("#{accessor_key}=", send("#{accessor_name}_was"))
         end
       end
     end
