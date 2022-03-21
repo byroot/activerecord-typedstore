@@ -9,6 +9,7 @@ credentials = { 'database' => 'typed_store_test', 'username' => 'typed_store', '
 ActiveRecord::Base.configurations = {
   test: {
     'test_sqlite3' => { 'adapter' => 'sqlite3', 'database' => '/tmp/typed_store.db' },
+  }
 }
 
 def define_columns(t)
