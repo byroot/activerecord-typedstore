@@ -696,6 +696,82 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
 
   end
 
+  describe 'with prefix true' do
+
+    it 'defines prefixed accessors' do
+      expect(model).to respond_to :prefixed_settings_language
+      expect(model).to respond_to :prefixed_settings_language=
+    end
+
+    it 'does not define unprefixed accessors' do
+      expect(model).not_to respond_to :language
+      expect(model).not_to respond_to :language=
+    end
+
+    it 'can be updated' do
+      model.update(prefixed_settings_language: 'en')
+      expect(model.reload.prefixed_settings_language).to be == 'en'
+    end
+
+  end
+
+  describe 'with custom prefix' do
+
+    it 'defines prefixed accessors' do
+      expect(model).to respond_to :custom_language
+      expect(model).to respond_to :custom_language=
+    end
+
+    it 'does not define unprefixed accessors' do
+      expect(model).not_to respond_to :language
+      expect(model).not_to respond_to :language=
+    end
+
+    it 'can be updated' do
+      model.update(custom_language: 'en')
+      expect(model.reload.custom_language).to be == 'en'
+    end
+
+  end
+
+  describe 'with suffix true' do
+
+    it 'defines suffixed accessors' do
+      expect(model).to respond_to :language_suffixed_settings
+      expect(model).to respond_to :language_suffixed_settings=
+    end
+
+    it 'does not define unprefixed accessors' do
+      expect(model).not_to respond_to :language
+      expect(model).not_to respond_to :language=
+    end
+
+    it 'can be updated' do
+      model.update(language_suffixed_settings: 'en')
+      expect(model.reload.language_suffixed_settings).to be == 'en'
+    end
+
+  end
+
+  describe 'with custom suffix' do
+
+    it 'defines suffixed accessors' do
+      expect(model).to respond_to :language_custom
+      expect(model).to respond_to :language_custom=
+    end
+
+    it 'does not define unprefixed accessors' do
+      expect(model).not_to respond_to :language
+      expect(model).not_to respond_to :language=
+    end
+
+    it 'can be updated' do
+      model.update(language_custom: 'en')
+      expect(model.reload.language_custom).to be == 'en'
+    end
+
+  end
+
   describe '`any` attributes' do
 
     it 'accept any type' do

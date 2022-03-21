@@ -72,15 +72,22 @@ def define_store_with_attributes(**options)
   end
 end
 
+def define_stores_with_prefix_and_suffix(**options)
+  typed_store(:prefixed_settings, prefix: true, **options) { |t| t.any :language }
+  typed_store(:suffixed_settings, suffix: true, **options) { |t| t.any :language }
+  typed_store(:custom_prefixed_settings, prefix: :custom, **options) { |t| t.any :language }
+  typed_store(:custom_suffixed_settings, suffix: :custom, **options) { |t| t.any :language }
+end
+
 MigrationClass = ActiveRecord::Migration["5.0"]
 class CreateAllTables < MigrationClass
 
   def self.up
     ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: "test", name: :test_sqlite3))
     create_table(:sqlite3_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
-    create_table(:yaml_typed_store_models, force: true) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-    create_table(:json_typed_store_models, force: true) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-    create_table(:marshal_typed_store_models, force: true) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
+    create_table(:yaml_typed_store_models, force: true) { |t| %i[settings explicit_settings partial_settings untyped_settings prefixed_settings suffixed_settings custom_prefixed_settings custom_suffixed_settings].each { |column| t.text column} }
+    create_table(:json_typed_store_models, force: true) { |t| %i[settings explicit_settings partial_settings untyped_settings prefixed_settings suffixed_settings custom_prefixed_settings custom_suffixed_settings].each { |column| t.text column} }
+    create_table(:marshal_typed_store_models, force: true) { |t| %i[settings explicit_settings partial_settings untyped_settings prefixed_settings suffixed_settings custom_prefixed_settings custom_suffixed_settings].each { |column| t.text column} }
   end
 end
 ActiveRecord::Migration.verbose = true
@@ -117,6 +124,7 @@ class YamlTypedStoreModel < ActiveRecord::Base
   define_store_with_attributes
   define_store_with_no_attributes
   define_store_with_partial_attributes
+  define_stores_with_prefix_and_suffix
 end
 
 class InheritedTypedStoreModel < YamlTypedStoreModel
@@ -134,6 +142,7 @@ class JsonTypedStoreModel < ActiveRecord::Base
   define_store_with_attributes(coder: ColumnCoder.new(JSON))
   define_store_with_no_attributes(coder: ColumnCoder.new(JSON))
   define_store_with_partial_attributes(coder: ColumnCoder.new(JSON))
+  define_stores_with_prefix_and_suffix(coder: ColumnCoder.new(JSON))
 end
 
 module MarshalCoder
@@ -156,6 +165,7 @@ class MarshalTypedStoreModel < ActiveRecord::Base
   define_store_with_attributes(coder: ColumnCoder.new(MarshalCoder))
   define_store_with_no_attributes(coder: ColumnCoder.new(MarshalCoder))
   define_store_with_partial_attributes(coder: ColumnCoder.new(MarshalCoder))
+  define_stores_with_prefix_and_suffix(coder: ColumnCoder.new(MarshalCoder))
 end
 
 Models = [

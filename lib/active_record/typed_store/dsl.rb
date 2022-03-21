@@ -6,10 +6,38 @@ module ActiveRecord::TypedStore
   class DSL
     attr_reader :fields, :coder
 
-    def initialize(attribute_name, options)
-      @coder = options.fetch(:coder) { default_coder(attribute_name) }
-      @accessors = options[:accessors]
-      @accessors = [] if options[:accessors] == false
+    def initialize(store_name, options)
+      @coder = options.fetch(:coder) { default_coder(store_name) }
+      @store_name = store_name
+      @prefix =
+        case options[:prefix]
+        when String, Symbol
+          "#{options[:prefix]}_"
+        when true
+          "#{store_name}_"
+        when false, nil
+          ""
+        else
+          raise ArgumentError, "Unexpected type for prefix option. Expected string, symbol, or boolean"
+        end
+      @suffix =
+        case options[:suffix]
+        when String, Symbol
+          "_#{options[:suffix]}"
+        when true
+          "_#{store_name}"
+        when false, nil
+          ""
+        else
+          raise ArgumentError, "Unexpected type for suffix option. Expected string, symbol, or boolean"
+        end
+      @accessors = if options[:accessors] == false
+        {}
+      elsif options[:accessors].is_a?(Array)
+        options[:accessors].each_with_object({}) do |accessor_name, hash|
+          hash[accessor_name] = accessor_key_for(accessor_name)
+        end
+      end
       @fields = {}
       yield self
     end
@@ -25,7 +53,9 @@ module ActiveRecord::TypedStore
     end
 
     def accessors
-      @accessors || @fields.values.select(&:accessor).map(&:name)
+      @accessors || @fields.values.select(&:accessor).each_with_object({}) do |field, hash|
+        hash[field.name] = accessor_key_for(field.name)
+      end
     end
 
     delegate :keys, to: :@fields
@@ -37,5 +67,11 @@ module ActiveRecord::TypedStore
       end
     end
     alias_method :date_time, :datetime
+
+    private
+
+    def accessor_key_for(name)
+      "#{@prefix}#{name}#{@suffix}"
+    end
   end
 end

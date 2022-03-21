@@ -76,6 +76,12 @@ shop.save
 shop.reload
 shop.settings[:unknown] # => 'Hello World'
 
+# You can group attributes with a prefix or suffix
+typed_store(:browser, prefix: true) { |s| s.string :ip } # => #browser_ip
+typed_store(:browser, prefix: :web) { |s| s.string :ip } # => #web_ip
+typed_store(:browser, suffix: true) { |s| s.string :ip } # => #ip_browser
+typed_store(:browser, suffix: :web) { |s| s.string :ip } # => #ip_web
+
 # If you only want type casting and default handling without accessors
 
 # you can disable them store wide
