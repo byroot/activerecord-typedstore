@@ -48,7 +48,7 @@ def define_columns(t)
     # native sqlite cannot automatically cast array to yaml
     t.string :tags, array: true, null: false, default: [].to_yaml
   else
-    t.string :tags, array: true, null: false, default: []
+    t.string :tags, array: true, null: false
   end
 
   t.string :nickname, blank: false, default: 'Please enter your nickname'
