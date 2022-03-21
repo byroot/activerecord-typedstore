@@ -9,9 +9,6 @@ credentials = { 'database' => 'typed_store_test', 'username' => 'typed_store', '
 ActiveRecord::Base.configurations = {
   test: {
     'test_sqlite3' => { 'adapter' => 'sqlite3', 'database' => '/tmp/typed_store.db' },
-    'test_postgresql' => credentials.merge('adapter' => 'postgresql', 'host' => 'localhost', 'port' => 5432),
-    'test_mysql' => credentials.merge('adapter' => 'mysql2', 'host' => 'localhost', 'port' => 3306, 'socket' => nil),
-  }
 }
 
 def define_columns(t)
@@ -83,23 +80,6 @@ MigrationClass = ActiveRecord::Migration["5.0"]
 class CreateAllTables < MigrationClass
 
   def self.up
-    if ENV['MYSQL']
-      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: "test", name: :test_mysql))
-      create_table(:mysql_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
-    end
-
-    if ENV['POSTGRES']
-      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: "test", name: :test_postgresql))
-      create_table(:postgresql_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
-
-      execute "create extension if not exists hstore"
-      create_table(:postgres_hstore_typed_store_models, force: true) { |t| t.hstore :settings; t.text :untyped_settings }
-
-      if ENV['POSTGRES_JSON']
-        create_table(:postgres_json_typed_store_models, force: true) { |t| t.json :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
-      end
-    end
-
     ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: "test", name: :test_sqlite3))
     create_table(:sqlite3_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
     create_table(:yaml_typed_store_models, force: true) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
@@ -127,44 +107,6 @@ class ColumnCoder
     @coder.dump(data || {})
   end
 
-end
-
-module AsJson
-  extend self
-
-  def load(value)
-    value
-  end
-
-  def dump(value)
-    value.as_json
-  end
-
-end
-
-if ENV['MYSQL']
-  class MysqlRegularARModel < ActiveRecord::Base
-    establish_connection :test_mysql
-    store :untyped_settings, accessors: [:title]
-  end
-end
-
-if ENV['POSTGRES']
-  class PostgresqlRegularARModel < ActiveRecord::Base
-    establish_connection ENV['POSTGRES_URL'] || :test_postgresql
-    store :untyped_settings, accessors: [:title]
-  end
-
-  if ENV['POSTGRES_JSON']
-    class PostgresJsonTypedStoreModel < ActiveRecord::Base
-      establish_connection ENV['POSTGRES_URL'] || :test_postgresql
-      store :untyped_settings, accessors: [:title]
-
-      define_store_with_attributes(coder: ColumnCoder.new(AsJson))
-      define_store_with_no_attributes(coder: ColumnCoder.new(AsJson))
-      define_store_with_partial_attributes(coder: ColumnCoder.new(AsJson))
-    end
-  end
 end
 
 class Sqlite3RegularARModel < ActiveRecord::Base
@@ -227,6 +169,3 @@ Models = [
   JsonTypedStoreModel,
   MarshalTypedStoreModel
 ]
-Models << MysqlRegularARModel if defined?(MysqlRegularARModel)
-Models << PostgresqlRegularARModel if defined?(PostgresqlRegularARModel)
-Models << PostgresJsonTypedStoreModel if defined?(PostgresJsonTypedStoreModel)

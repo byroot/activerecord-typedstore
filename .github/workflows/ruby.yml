@@ -18,28 +18,6 @@ jobs:
       POSTGRES: 1
       MYSQL: 1
       POSTGRES_JSON: 1
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_USER: typed_store
-          POSTGRES_PASSWORD: typed_store
-          POSTGRES_DB: typed_store_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      mysql:
-        image: mysql:8.0.21
-        env:
-          MYSQL_USER: typed_store
-          MYSQL_PASSWORD: typed_store
-          MYSQL_DATABASE: typed_store_test
-        ports:
-          - 3306:3306
     steps:
       - name: Check out code
         uses: actions/checkout@v2
