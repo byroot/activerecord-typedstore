@@ -2,15 +2,17 @@ require 'active_record'
 require 'json'
 require 'yaml'
 
+ENV["RAILS_ENV"] = "test"
+
 ActiveRecord::Base.time_zone_aware_attributes = ENV['TIMEZONE_AWARE'] != '0'
 credentials = { 'database' => 'typed_store_test', 'username' => 'typed_store', 'password' => 'typed_store' }
 ActiveRecord::Base.configurations = {
-  'test_sqlite3' => { 'adapter' => 'sqlite3', 'database' => '/tmp/typed_store.db' },
-  'test_postgresql' => credentials.merge('adapter' => 'postgresql', 'host' => 'localhost', 'port' => 5432),
-  'test_mysql' => credentials.merge('adapter' => 'mysql2', 'host' => 'localhost', 'port' => 3306),
+  test: {
+    'test_sqlite3' => { 'adapter' => 'sqlite3', 'database' => '/tmp/typed_store.db' },
+    'test_postgresql' => credentials.merge('adapter' => 'postgresql', 'host' => 'localhost', 'port' => 5432),
+    'test_mysql' => credentials.merge('adapter' => 'mysql2', 'host' => 'localhost', 'port' => 3306, 'socket' => nil),
+  }
 }
-
-pp ActiveRecord::Base.configurations
 
 def define_columns(t)
   t.integer :no_default
@@ -82,12 +84,12 @@ class CreateAllTables < MigrationClass
 
   def self.up
     if ENV['MYSQL']
-      ActiveRecord::Base.establish_connection(:test_mysql)
+      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: "test", name: :test_mysql))
       create_table(:mysql_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
     end
 
     if ENV['POSTGRES']
-      ActiveRecord::Base.establish_connection(ENV['POSTGRES_URL'] || :test_postgresql)
+      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: "test", name: :test_postgresql))
       create_table(:postgresql_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
 
       execute "create extension if not exists hstore"
@@ -98,7 +100,7 @@ class CreateAllTables < MigrationClass
       end
     end
 
-    ActiveRecord::Base.establish_connection(:test_sqlite3)
+    ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: "test", name: :test_sqlite3))
     create_table(:sqlite3_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
     create_table(:yaml_typed_store_models, force: true) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
     create_table(:json_typed_store_models, force: true) { |t| t.text :settings; t.text :explicit_settings; t.text :partial_settings; t.text :untyped_settings }
