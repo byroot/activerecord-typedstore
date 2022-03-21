@@ -42,12 +42,7 @@ def define_columns(t)
 
   t.integer :grades, array: true
 
-  if t.respond_to?(:name) && t.name =~ /sqlite|mysql/
-    # native sqlite cannot automatically cast array to yaml
-    t.string :tags, array: true, null: false, default: [].to_yaml
-  else
-    t.string :tags, array: true, null: false
-  end
+  t.string :tags, array: true, null: false, default: [].to_yaml
 
   t.string :nickname, blank: false, default: 'Please enter your nickname'
 end
