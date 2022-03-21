@@ -10,6 +10,8 @@ ActiveRecord::Base.configurations = {
   'test_mysql' => credentials.merge('adapter' => 'mysql2', 'host' => 'localhost', 'port' => 3306),
 }
 
+pp ActiveRecord::Base.configurations
+
 def define_columns(t)
   t.integer :no_default
 
