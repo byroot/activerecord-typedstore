@@ -545,6 +545,16 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
     expect(model.settings).not_to have_key(:remind_on)
   end
 
+  describe 'dirty tracking' do
+    context 'with multiple fields' do
+      it 'is order agnostic' do
+        model.save!
+        expect { model.settings[:name] = model.settings.delete(:name) }
+          .not_to(change { model.changed? }.from(false))
+      end
+    end
+  end
+
   describe 'assigning the store' do
     it 'handles mutated value' do
       model.save!

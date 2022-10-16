@@ -41,13 +41,8 @@ module ActiveRecord::TypedStore
 
     def changed_in_place?(raw_old_value, value)
       return false if value.nil?
-      if ActiveRecord.version.segments.first >= 5
-        raw_new_value = serialize(value)
-      else
-        # 4.2 capability
-        raw_new_value = type_cast_for_database(value)
-      end
-      raw_old_value.nil? != raw_new_value.nil? || raw_old_value != raw_new_value
+
+      value != deserialize(raw_old_value)
     end
   end
 end
