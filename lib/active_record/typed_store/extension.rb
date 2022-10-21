@@ -12,15 +12,34 @@ module ActiveRecord::TypedStore
       unless self < Behavior
         include Behavior
         class_attribute :typed_stores, :store_accessors, instance_accessor: false
+
+        def inherited(sub_class)
+          super(sub_class)
+
+          if self.respond_to? :typed_stores
+            # Copy the store to the sub class to avoid mutation of the store in parent class
+            sub_class.typed_stores = self.typed_stores.map do |store_attribute, store|
+              new_store = store.dup
+              new_store.instance_variable_set(:'@fields', store.fields.dup)
+              [store_attribute, new_store]
+            end.to_h
+          end
+        end
       end
 
+      self.typed_stores ||= {}
       store_options = options.slice(:prefix, :suffix)
-      dsl = DSL.new(store_attribute, options, &block)
-      self.typed_stores = (self.typed_stores || {}).merge(store_attribute => dsl)
+      dsl = self.typed_stores[store_attribute] || DSL.new(store_attribute, options)
+      dsl.store_accessors(options, &block)
+      self.typed_stores[store_attribute] = dsl
       self.store_accessors = typed_stores.each_value.flat_map { |d| d.accessors.values }.map { |a| -a.to_s }.to_set
 
       typed_klass = TypedHash.create(dsl.fields.values)
-      const_set("#{store_attribute}_hash".camelize, typed_klass)
+      const_name = "#{store_attribute}_hash".camelize
+      if const_defined?(const_name) && const_get(const_name).to_s == "#{self}/#{store_attribute}_hash".camelize
+        remove_const(const_name)
+      end
+      const_set(const_name, typed_klass)
 
       if ActiveRecord.version >= Gem::Version.new('6.1.0.alpha')
         attribute(store_attribute) do |subtype|

@@ -500,6 +500,41 @@ shared_examples 'any model' do
 
 end
 
+shared_examples 'an inherited model' do
+  let(:model) { described_class.new }
+
+  it 'can be serialized' do
+    model.update(new_attribute: "foobar")
+    expect(model.reload.new_attribute).to be == "foobar"
+  end
+
+  it 'is casted' do
+    model.update(new_attribute: 42)
+    expect(model.settings[:new_attribute]).to be == '42'
+  end
+
+  it 'parent classes are not modified' do
+    sub_klass = Class.new(model.class) { typed_store(:settings) { |t| t.boolean :another_new_attribute } }
+    expect(sub_klass.store_accessors).to include 'another_new_attribute'
+    expect(sub_klass.store_accessors).to include 'new_attribute'
+    expect(model.class.store_accessors).not_to include 'another_new_attribute'
+    expect(model.class.store_accessors).to include 'new_attribute'
+    expect(model.class.superclass.store_accessors).not_to include 'another_new_attribute'
+    expect(model.class.superclass.store_accessors).not_to include 'new_attribute'
+  end
+
+  it 'can redefine fields' do
+    expect(model.age).to eq 18
+  end
+
+  it 'merges the previous store' do
+    settings = model.class.typed_stores[:settings]
+    expect(model).to respond_to :new_attribute
+    expect(settings.keys).to include :new_attribute
+    expect(settings.fields[:age].default).to eq 18
+  end
+end
+
 shared_examples 'a store' do |retain_type = true, settings_type = :text|
   let(:model) { described_class.new }
 
@@ -944,15 +979,8 @@ end
 describe InheritedTypedStoreModel do
   let(:model) { described_class.new }
 
-  it 'can be serialized' do
-    model.update(new_attribute: "foobar")
-    expect(model.reload.new_attribute).to be == "foobar"
-  end
-
-  it 'is casted' do
-    model.update(new_attribute: 42)
-    expect(model.settings[:new_attribute]).to be == '42'
-  end
+  it_should_behave_like 'an inherited model'
+  it_should_behave_like 'a model supporting arrays'
 end
 
 describe DirtyTrackingModel do
