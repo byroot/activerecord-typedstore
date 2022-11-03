@@ -954,3 +954,23 @@ describe InheritedTypedStoreModel do
     expect(model.settings[:new_attribute]).to be == '42'
   end
 end
+
+describe DirtyTrackingModel do
+  it 'stores the default on creation' do
+    model = DirtyTrackingModel.create!
+    expect(model.settings_before_type_cast).to_not be_blank
+  end
+
+  it 'handles loaded records having uninitialized defaults' do
+    model = DirtyTrackingModel.create!
+    DirtyTrackingModel.update_all("settings = NULL") # bypass validation
+    model = DirtyTrackingModel.find(model.id)
+    expect(model.settings_changed?).to be false
+    expect(model.changes).to be_empty
+
+    model.update!(title: "Hello")
+
+    expect(model.settings_changed?).to be false
+    expect(model.changes).to be_empty
+  end
+end
