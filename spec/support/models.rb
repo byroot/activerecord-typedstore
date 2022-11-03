@@ -81,15 +81,21 @@ def define_stores_with_prefix_and_suffix(**options)
   typed_store(:custom_suffixed_settings, suffix: :custom, **options) { |t| t.any :language }
 end
 
-MigrationClass = ActiveRecord::Migration["5.0"]
+MigrationClass = ActiveRecord::Migration["#{ActiveRecord::VERSION::MAJOR}.#{ActiveRecord::VERSION::MINOR}"]
 class CreateAllTables < MigrationClass
-
   def self.up
     ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations.configs_for(env_name: "test", name: :test_sqlite3))
     create_table(:sqlite3_regular_ar_models, force: true) { |t| define_columns(t); t.text :untyped_settings }
-    create_table(:yaml_typed_store_models, force: true) { |t| %i[settings explicit_settings partial_settings untyped_settings prefixed_settings suffixed_settings custom_prefixed_settings custom_suffixed_settings].each { |column| t.text column} }
-    create_table(:json_typed_store_models, force: true) { |t| %i[settings explicit_settings partial_settings untyped_settings prefixed_settings suffixed_settings custom_prefixed_settings custom_suffixed_settings].each { |column| t.text column} }
-    create_table(:marshal_typed_store_models, force: true) { |t| %i[settings explicit_settings partial_settings untyped_settings prefixed_settings suffixed_settings custom_prefixed_settings custom_suffixed_settings].each { |column| t.text column} }
+    create_table(:yaml_typed_store_models, force: true) { |t| %i[settings explicit_settings partial_settings untyped_settings prefixed_settings suffixed_settings custom_prefixed_settings custom_suffixed_settings].each { |column| t.text column}; t.string :regular_column }
+    create_table(:json_typed_store_models, force: true) { |t| %i[settings explicit_settings partial_settings untyped_settings prefixed_settings suffixed_settings custom_prefixed_settings custom_suffixed_settings].each { |column| t.text column}; t.string :regular_column }
+    create_table(:marshal_typed_store_models, force: true) { |t| %i[settings explicit_settings partial_settings untyped_settings prefixed_settings suffixed_settings custom_prefixed_settings custom_suffixed_settings].each { |column| t.text column}; t.string :regular_column }
+
+    create_table(:dirty_tracking_models, force: true) do |t|
+      t.string :title
+      t.text :settings
+
+      t.timestamps
+    end
   end
 end
 ActiveRecord::Migration.verbose = true
@@ -122,6 +128,11 @@ end
 class YamlTypedStoreModel < ActiveRecord::Base
   establish_connection :test_sqlite3
   store :untyped_settings, accessors: [:title]
+
+  after_update :read_active
+  def read_active
+    enabled
+  end
 
   define_store_with_attributes
   define_store_with_no_attributes
@@ -177,3 +188,15 @@ Models = [
   JsonTypedStoreModel,
   MarshalTypedStoreModel
 ]
+
+class DirtyTrackingModel < ActiveRecord::Base
+  after_update :read_active
+
+  typed_store(:settings) do |f|
+    f.boolean :active, default: false, null: false
+  end
+
+  def read_active
+    active
+  end
+end
