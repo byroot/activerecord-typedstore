@@ -1,4 +1,5 @@
 require 'active_record'
+require 'base64'
 require 'json'
 require 'yaml'
 
@@ -12,7 +13,7 @@ ActiveRecord::Base.configurations = {
   }
 }
 
-def define_columns(t)
+def define_columns(t, array: false)
   t.integer :no_default
 
   t.string :name, default: '', null: false
@@ -40,11 +41,12 @@ def define_columns(t)
   t.decimal :total_price, default: 4.2, null: false, precision: 16, scale: 2
   t.decimal :shipping_cost, precision: 16, scale: 2
 
-  t.integer :grades, array: true
+  if t.is_a?(ActiveRecord::TypedStore::DSL)
+    t.integer :grades, array: true
+    t.string :tags, array: true, null: false, default: [].to_yaml
 
-  t.string :tags, array: true, null: false, default: [].to_yaml
-
-  t.string :nickname, blank: false, default: 'Please enter your nickname'
+    t.string :nickname, blank: false, default: 'Please enter your nickname'
+  end
 end
 
 def define_store_with_no_attributes(**options)

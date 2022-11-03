@@ -8,6 +8,12 @@ Dir[File.expand_path(File.join(File.dirname(__FILE__), 'support', '**', '*.rb'))
 
 Time.zone = 'UTC'
 
+if ActiveRecord.respond_to?(:yaml_column_permitted_classes)
+  ActiveRecord.yaml_column_permitted_classes |= ['Date', 'Time', 'BigDecimal']
+elsif ActiveRecord::Base.respond_to?(:yaml_column_permitted_classes)
+  ActiveRecord::Base.yaml_column_permitted_classes |= ['Date', 'Time', 'BigDecimal']
+end
+
 RSpec.configure do |config|
   config.order = 'random'
 end

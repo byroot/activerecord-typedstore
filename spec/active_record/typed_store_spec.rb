@@ -925,7 +925,7 @@ describe YamlTypedStoreModel do
 
   it 'nested hashes are not serialized as HashWithIndifferentAccess' do
     model = described_class.create!
-    expect(model.settings_before_type_cast).not_to include('HashWithIndifferentAccess')
+    expect(model.settings_before_type_cast.to_s).not_to include('HashWithIndifferentAccess')
   end
 end
 
