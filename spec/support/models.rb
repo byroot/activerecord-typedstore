@@ -93,6 +93,7 @@ class CreateAllTables < MigrationClass
     create_table(:dirty_tracking_models, force: true) do |t|
       t.string :title
       t.text :settings
+      t.text :sttgs
 
       t.timestamps
     end
@@ -190,13 +191,20 @@ Models = [
 ]
 
 class DirtyTrackingModel < ActiveRecord::Base
-  after_update :read_active
+  after_update :read_stores
 
   typed_store(:settings) do |f|
     f.boolean :active, default: false, null: false
   end
 
-  def read_active
-    active
+  alias_attribute :legacy_settings, :sttgs
+
+  typed_store(:legacy_settings) do |f|
+    f.boolean :migrated, default: false, null: false
+  end
+
+  def read_stores
+    active if has_attribute?(:settings)
+    migrated if has_attribute?(:legacy_settings)
   end
 end

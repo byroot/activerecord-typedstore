@@ -958,19 +958,35 @@ end
 describe DirtyTrackingModel do
   it 'stores the default on creation' do
     model = DirtyTrackingModel.create!
+    model = DirtyTrackingModel.find(model.id)
+
     expect(model.settings_before_type_cast).to_not be_blank
+    expect(model.legacy_settings_before_type_cast).to_not be_blank
   end
 
   it 'handles loaded records having uninitialized defaults' do
     model = DirtyTrackingModel.create!
-    DirtyTrackingModel.update_all("settings = NULL") # bypass validation
+    DirtyTrackingModel.update_all("settings = NULL, sttgs = NULL") # bypass validation
+
     model = DirtyTrackingModel.find(model.id)
     expect(model.settings_changed?).to be false
     expect(model.changes).to be_empty
 
     model.update!(title: "Hello")
-
     expect(model.settings_changed?).to be false
     expect(model.changes).to be_empty
+
+    model = DirtyTrackingModel.find(model.id)
+    expect(model.settings_before_type_cast).to_not be_blank
+    expect(model.legacy_settings_before_type_cast).to_not be_blank
+  end
+
+  it 'does not update missing attributes in partially loaded records' do
+    model = DirtyTrackingModel.create!(active: true)
+    model = DirtyTrackingModel.select(:id, :title).find(model.id)
+    model.update!(title: "Hello")
+
+    model = DirtyTrackingModel.find(model.id)
+    expect(model.active).to be true
   end
 end
