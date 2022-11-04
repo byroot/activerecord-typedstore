@@ -958,6 +958,7 @@ end
 describe DirtyTrackingModel do
   it 'stores the default on creation' do
     model = DirtyTrackingModel.create!
+    model = DirtyTrackingModel.find(model.id)
     expect(model.settings_before_type_cast).to_not be_blank
   end
 
@@ -972,5 +973,14 @@ describe DirtyTrackingModel do
 
     expect(model.settings_changed?).to be false
     expect(model.changes).to be_empty
+  end
+
+  it 'does not update missing attributes in partially loaded records' do
+    model = DirtyTrackingModel.create!(active: true)
+    model = DirtyTrackingModel.select(:id, :title).find(model.id)
+    model.update!(title: "Hello")
+
+    model = DirtyTrackingModel.find(model.id)
+    expect(model.active).to be true
   end
 end

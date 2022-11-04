@@ -190,7 +190,7 @@ Models = [
 ]
 
 class DirtyTrackingModel < ActiveRecord::Base
-  after_update :read_active
+  after_update :read_active, if: -> { has_attribute?(:settings) }
 
   typed_store(:settings) do |f|
     f.boolean :active, default: false, null: false
