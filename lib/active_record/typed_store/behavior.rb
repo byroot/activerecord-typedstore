@@ -74,20 +74,29 @@ module ActiveRecord::TypedStore
 
     private
 
-    def attribute_names_for_partial_inserts
-      # Contrary to all vanilla Rails types, typedstore attribute have an inherent default
-      # value that doesn't match the database column default.
-      # As such we need to insert them on partial inserts even if they weren't changed.
-      super | self.class.typed_stores.keys.map(&:to_s)
-    end
+    if ActiveRecord.version.segments.first >= 7
+      def attribute_names_for_partial_inserts
+        # Contrary to all vanilla Rails types, typedstore attribute have an inherent default
+        # value that doesn't match the database column default.
+        # As such we need to insert them on partial inserts even if they weren't changed.
+        super | self.class.typed_stores.keys.map(&:to_s)
+      end
 
-    def attribute_names_for_partial_updates
-      # On partial updates we shouldn't need to force stores to be persisted. However since
-      # we weren't persisting them for a while on insertion, we now need to gracefully deal
-      # with existing records that may have been persisted with a `NULL` store
-      # We use `blank?` as an heuristic to detect these.
-      super | self.class.typed_stores.keys.map(&:to_s).select do |store|
-        @attributes.key?(store) && @attributes[store].value_before_type_cast.blank?
+      def attribute_names_for_partial_updates
+        # On partial updates we shouldn't need to force stores to be persisted. However since
+        # we weren't persisting them for a while on insertion, we now need to gracefully deal
+        # with existing records that may have been persisted with a `NULL` store
+        # We use `blank?` as an heuristic to detect these.
+        super | self.class.typed_stores.keys.map(&:to_s).select do |store|
+          has_attribute?(store) && read_attribute_before_type_cast(store).blank?
+        end
+      end
+    else
+      # Rails 6.1 capability
+      def attribute_names_for_partial_writes
+        super | self.class.typed_stores.keys.map(&:to_s).select do |store|
+          has_attribute?(store) && read_attribute_before_type_cast(store).blank?
+        end
       end
     end
   end
