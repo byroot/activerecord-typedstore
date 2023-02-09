@@ -9,9 +9,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ['2.7', '3.0', '3.1']
+        ruby: ['2.7', '3.0', '3.1', '3.2']
         rails: ['6.1', '7.0', 'edge']
         timezone_aware: [0, 1]
+        exclude:
+          - ruby: '3.2'
+            rails: '6.1'
     env:
       BUNDLE_GEMFILE: gemfiles/Gemfile.ar-${{ matrix.rails }}
       TIMEZONE_AWARE: ${{ matrix.timezone_aware }}
