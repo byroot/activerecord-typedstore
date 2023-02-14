@@ -1,6 +1,6 @@
 # ActiveRecord::TypedStore
 
-[![Gem Version](https://badge.fury.io/rb/activerecord-typedstore.png)](http://badge.fury.io/rb/activerecord-typedstore)
+[![Gem Version](https://badge.fury.io/rb/activerecord-typedstore.svg)](http://badge.fury.io/rb/activerecord-typedstore)
 
 [ActiveRecord::Store](http://api.rubyonrails.org/classes/ActiveRecord/Store.html) but with typed attributes.
 
