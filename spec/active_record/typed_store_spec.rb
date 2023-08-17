@@ -524,7 +524,7 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
   describe 'model.typed_stores' do
     it "can access keys" do
       stores = model.class.typed_stores
-      expect(stores[:settings].keys).to eq [:no_default, :name, :email, :cell_phone, :public, :enabled, :age, :max_length, :rate, :price, :published_on, :remind_on, :published_at_time, :remind_at_time, :published_at, :remind_at, :total_price, :shipping_cost, :grades, :tags, :nickname, :author, :source, :signup, :country]
+      expect(stores[:settings].keys).to eq [:no_default, :name, :email, :cell_phone, :public, :enabled, :age, :max_length, :rate, :price, :published_on, :remind_on, :published_at_time, :remind_at_time, :published_at, :remind_at, :total_price, :shipping_cost, :grades, :tags, :subjects, :nickname, :author, :source, :signup, :country]
     end
 
     it "can access keys even when accessors are not defined" do
@@ -889,9 +889,15 @@ shared_examples 'a model supporting arrays' do |pg_native=false|
       expect(model.reload.grades).to be == [[1, 2], [3, 4, 5]]
     end
 
+    it 'defaults to [] if provided default is not an array' do
+      model.update(subjects: nil)
+      expect(model.reload.subjects).to be == []
+    end
+
+    # Not sure about pg_native and if this test should be outside of this block.
     it 'retreive default if assigned null' do
       model.update(tags: nil)
-      expect(model.reload.tags).to be == []
+      expect(model.reload.tags).to be == ['article']
     end
   end
 end
