@@ -11,12 +11,12 @@ module ActiveRecord::TypedStore
 
       @accessor = options.fetch(:accessor, true)
       @name = name
+      @array = options.fetch(:array, false)
       if options.key?(:default)
         @default = extract_default(options[:default])
       end
       @null = options.fetch(:null, true)
       @blank = options.fetch(:blank, true)
-      @array = options.fetch(:array, false)
     end
 
     def has_default?
@@ -27,6 +27,8 @@ module ActiveRecord::TypedStore
       casted_value = type_cast(value)
       if !blank
         casted_value = default if casted_value.blank?
+      elsif array && has_default?
+        casted_value = default if value.nil?
       elsif !null
         casted_value = default if casted_value.nil?
       end
