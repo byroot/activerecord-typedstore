@@ -889,9 +889,10 @@ shared_examples 'a model supporting arrays' do |pg_native=false|
       expect(model.reload.grades).to be == [[1, 2], [3, 4, 5]]
     end
 
+    # Not sure about pg_native and if this test should be outside of this block.
     it 'retreive default if assigned null' do
       model.update(tags: nil)
-      expect(model.reload.tags).to be == []
+      expect(model.reload.tags).to be == ['article']
     end
   end
 end

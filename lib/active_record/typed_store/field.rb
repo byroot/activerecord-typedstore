@@ -27,9 +27,18 @@ module ActiveRecord::TypedStore
     end
 
     def cast(value)
+      # When value is nil
       casted_value = type_cast(value)
+      # casted_value is set to either provided default array or []
       if !blank
         casted_value = default if casted_value.blank?
+      elsif array && has_default?
+        # Alternative to adding this condition for the case where array: true, blank: true
+        #   is to write it in the docs that if you want to provide a default array, you
+        #   have to set blank: false
+
+        # Cannot check for casted_value.blank? because the provided array might just be [].
+        casted_value = default if value.nil?
       elsif !null
         casted_value = default if casted_value.nil?
       end
@@ -61,6 +70,13 @@ module ActiveRecord::TypedStore
       type_cast(value)
     end
 
+    # When value = nil and options[:default] is provided
+    # First time this is called is to type_cast the value provided by options[:default]
+    #   if value is not an array, it will fall back to []
+    #   if value is an array, it will be mapped accordingly
+    # Second time this is called is to type_cast the actual value
+    #   if value is not an array, it will fall back to []
+    #   if value is an array, it will be mapped accordingly
     def type_cast(value, arrayize: true)
       if array && (arrayize || value.is_a?(Array))
         return [] if arrayize && !value.is_a?(Array)
