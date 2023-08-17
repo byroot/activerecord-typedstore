@@ -11,12 +11,15 @@ module ActiveRecord::TypedStore
 
       @accessor = options.fetch(:accessor, true)
       @name = name
+      # Got to move @array up so that #extract_default -> #type_cast
+      # can cast the array properly instead of stringify the default
+      # array provided
+      @array = options.fetch(:array, false)
       if options.key?(:default)
         @default = extract_default(options[:default])
       end
       @null = options.fetch(:null, true)
       @blank = options.fetch(:blank, true)
-      @array = options.fetch(:array, false)
     end
 
     def has_default?
