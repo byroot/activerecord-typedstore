@@ -44,6 +44,7 @@ def define_columns(t, array: false)
   if t.is_a?(ActiveRecord::TypedStore::DSL)
     t.integer :grades, array: true
     t.string :tags, array: true, null: false, default: ['article']
+    t.string :subjects, array: true, null: false, default: ['mathematics'].to_yaml
 
     t.string :nickname, blank: false, default: 'Please enter your nickname'
   end
