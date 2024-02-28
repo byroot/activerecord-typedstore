@@ -9,36 +9,18 @@ module ActiveRecord::TypedStore
     def initialize(store_name, options)
       @coder = options.fetch(:coder) { default_coder(store_name) }
       @store_name = store_name
-      @prefix =
-        case options[:prefix]
-        when String, Symbol
-          "#{options[:prefix]}_"
-        when true
-          "#{store_name}_"
-        when false, nil
-          ""
-        else
-          raise ArgumentError, "Unexpected type for prefix option. Expected string, symbol, or boolean"
-        end
-      @suffix =
-        case options[:suffix]
-        when String, Symbol
-          "_#{options[:suffix]}"
-        when true
-          "_#{store_name}"
-        when false, nil
-          ""
-        else
-          raise ArgumentError, "Unexpected type for suffix option. Expected string, symbol, or boolean"
-        end
-      @accessors = if options[:accessors] == false
-        {}
-      elsif options[:accessors].is_a?(Array)
-        options[:accessors].each_with_object({}) do |accessor_name, hash|
-          hash[accessor_name] = accessor_key_for(accessor_name)
-        end
-      end
       @fields = {}
+    end
+
+    def store_accessors(options)
+      set_affixes(options)
+      @accessors = if options[:accessors] == false
+                     {}
+                   elsif options[:accessors].is_a?(Array)
+                     options[:accessors].each_with_object({}) do |accessor_name, hash|
+                       hash[accessor_name] = accessor_key_for(accessor_name)
+                     end
+                   end
       yield self
     end
 
@@ -69,6 +51,31 @@ module ActiveRecord::TypedStore
     alias_method :date_time, :datetime
 
     private
+
+    def set_affixes(options)
+      @prefix =
+        case options[:prefix]
+        when String, Symbol
+          "#{options[:prefix]}_"
+        when true
+          "#{@store_name}_"
+        when false, nil
+          ""
+        else
+          raise ArgumentError, "Unexpected type for prefix option. Expected string, symbol, or boolean"
+        end
+      @suffix =
+        case options[:suffix]
+        when String, Symbol
+          "_#{options[:suffix]}"
+        when true
+          "_#{@store_name}"
+        when false, nil
+          ""
+        else
+          raise ArgumentError, "Unexpected type for suffix option. Expected string, symbol, or boolean"
+        end
+    end
 
     def accessor_key_for(name)
       "#{@prefix}#{name}#{@suffix}"

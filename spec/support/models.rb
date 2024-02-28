@@ -146,6 +146,7 @@ class InheritedTypedStoreModel < YamlTypedStoreModel
 
   typed_store :settings do |t|
     t.string :new_attribute
+    t.integer :age, default: 18, null: false
   end
 end
 
