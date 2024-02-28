@@ -22,7 +22,12 @@ module ActiveRecord::TypedStore
       typed_klass = TypedHash.create(dsl.fields.values)
       const_set("#{store_attribute}_hash".camelize, typed_klass)
 
-      if ActiveRecord.version >= Gem::Version.new('6.1.0.alpha')
+      if ActiveRecord.version >= Gem::Version.new('7.2.0.alpha')
+        decorate_attributes([store_attribute]) do |name, subtype|
+          subtype = subtype.subtype if subtype.is_a?(Type)
+          Type.new(typed_klass, dsl.coder, subtype)
+        end
+      elsif ActiveRecord.version >= Gem::Version.new('6.1.0.alpha')
         attribute(store_attribute) do |subtype|
           subtype = subtype.subtype if subtype.is_a?(Type)
           Type.new(typed_klass, dsl.coder, subtype)
