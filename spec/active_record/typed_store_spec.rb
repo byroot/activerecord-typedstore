@@ -500,6 +500,73 @@ shared_examples 'any model' do
 
 end
 
+describe "saving model when typed_store property is empty" do
+
+  it "when db schema declares null: false, saves empty hash in db" do
+    ActiveRecord::Schema.define do
+      create_table :product1s, force: true do |t|
+        t.json :properties, null: false, default: {}
+      end
+    end
+
+    class Product1 < ActiveRecord::Base
+      typed_store :properties, coder: ActiveRecord::TypedStore::IdentityCoder do |s|
+        s.string :some_property
+      end
+    end
+
+    Product1.new().save
+
+    saved_properties = ActiveRecord::Base.connection.select_all("select * from product1s")
+                                         .map { |row| row['properties'] }
+
+    expect(saved_properties).to eq(['{}'])
+  end
+
+  it "when db schema declares null: true, with default {} saves {} in db" do
+    ActiveRecord::Schema.define do
+      create_table :product3s, force: true do |t|
+        t.json :properties, default: {}
+      end
+    end
+
+    class Product3 < ActiveRecord::Base
+      typed_store :properties, coder: ActiveRecord::TypedStore::IdentityCoder do |s|
+        s.string :some_property
+      end
+    end
+
+    Product3.new().save
+
+    saved_properties = ActiveRecord::Base.connection.select_all("select * from product3s")
+                                         .map { |row| row['properties'] }
+
+    expect(saved_properties).to eq(['{}'])
+  end
+
+  it "when db schema declares null: true, and no default, saves nil in db" do
+    ActiveRecord::Schema.define do
+      create_table :product2s, force: true do |t|
+        t.json :properties
+      end
+    end
+
+    class Product2 < ActiveRecord::Base
+      typed_store :properties, coder: ActiveRecord::TypedStore::IdentityCoder do |s|
+        s.string :some_property
+      end
+    end
+
+    Product2.new().save
+
+    saved_properties = ActiveRecord::Base.connection.select_all("select * from product2s")
+                                         .map { |row| row['properties'] }
+
+    expect(saved_properties).to eq([nil])
+  end
+
+end
+
 shared_examples 'a store' do |retain_type = true, settings_type = :text|
   let(:model) { described_class.new }
 
@@ -799,7 +866,8 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
       expect(model.explicit_settings[:signup][:counter]).to be_nil
     end
 
-    it 'coerce hashes to HashWithIndifferentAccess' do # this is actually Rails behavior
+    it 'coerce hashes to HashWithIndifferentAccess' do
+      # this is actually Rails behavior
       model.signup[:metadata] = { "signed_up_at" => Time.now }
       expect(model.signup[:metadata]).to be_a ActiveSupport::HashWithIndifferentAccess
     end
@@ -832,7 +900,7 @@ shared_examples 'a db backed model' do
 
 end
 
-shared_examples 'a model supporting arrays' do |pg_native=false|
+shared_examples 'a model supporting arrays' do |pg_native = false|
 
   let(:model) { described_class.new }
 
@@ -871,13 +939,13 @@ shared_examples 'a model supporting arrays' do |pg_native=false|
   if pg_native
 
     it 'raise on non rectangular multidimensianl arrays' do
-      expect{
+      expect {
         model.update(grades: [[1, 2], [3, 4, 5]])
       }.to raise_error(ActiveRecord::StatementInvalid)
     end
 
     it 'raise on non nil assignation if column is non nullable' do
-      expect{
+      expect {
         model.update(tags: nil)
       }.to raise_error(ActiveRecord::StatementInvalid)
     end

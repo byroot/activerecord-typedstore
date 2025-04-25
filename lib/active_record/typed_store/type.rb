@@ -2,8 +2,9 @@
 
 module ActiveRecord::TypedStore
   class Type < ActiveRecord::Type::Serialized
-    def initialize(typed_hash_klass, coder, subtype)
+    def initialize(typed_hash_klass, coder, subtype, properties: {})
       @typed_hash_klass = typed_hash_klass
+      @properties = properties
       super(subtype, coder)
     end
 
@@ -36,6 +37,8 @@ module ActiveRecord::TypedStore
     end
 
     def default_value?(value)
+      return false if (@properties[:null] == false || @properties[:default] == '{}') && value == {} && defaults == {}
+
       value == defaults
     end
 

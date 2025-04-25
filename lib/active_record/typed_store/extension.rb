@@ -8,7 +8,7 @@ require 'active_record/typed_store/identity_coder'
 
 module ActiveRecord::TypedStore
   module Extension
-    def typed_store(store_attribute, options={}, &block)
+    def typed_store(store_attribute, options = {}, &block)
       unless self < Behavior
         include Behavior
         class_attribute :typed_stores, :store_accessors, instance_accessor: false
@@ -22,19 +22,20 @@ module ActiveRecord::TypedStore
       typed_klass = TypedHash.create(dsl.fields.values)
       const_set("#{store_attribute}_hash".camelize, typed_klass)
 
+      properties = extract_attribute_properties(store_attribute)
       if ActiveRecord.version >= Gem::Version.new('7.2.0.alpha')
         decorate_attributes([store_attribute]) do |name, subtype|
           subtype = subtype.subtype if subtype.is_a?(Type)
-          Type.new(typed_klass, dsl.coder, subtype)
+          Type.new(typed_klass, dsl.coder, subtype, properties: properties)
         end
       elsif ActiveRecord.version >= Gem::Version.new('6.1.0.alpha')
         attribute(store_attribute) do |subtype|
           subtype = subtype.subtype if subtype.is_a?(Type)
-          Type.new(typed_klass, dsl.coder, subtype)
+          Type.new(typed_klass, dsl.coder, subtype, properties: properties)
         end
       else
         decorate_attribute_type(store_attribute, :typed_store) do |subtype|
-          Type.new(typed_klass, dsl.coder, subtype)
+          Type.new(typed_klass, dsl.coder, subtype, properties: properties)
         end
       end
       store_accessor(store_attribute, dsl.accessors.keys, **store_options)
@@ -54,5 +55,15 @@ module ActiveRecord::TypedStore
         end
       end
     end
+
+    def extract_attribute_properties(store_attribute)
+      parent = self.ancestors.first
+      column_info = parent.columns_hash if parent.superclass == ActiveRecord::Base
+      attribute_def = column_info[store_attribute.to_s]
+      { null: attribute_def.null, default: attribute_def.default }
+    rescue StandardError => e
+      {}
+    end
   end
+
 end
