@@ -524,7 +524,7 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
   describe 'model.typed_stores' do
     it "can access keys" do
       stores = model.class.typed_stores
-      expect(stores[:settings].keys).to eq [:no_default, :name, :email, :cell_phone, :public, :enabled, :age, :max_length, :rate, :price, :published_on, :remind_on, :published_at_time, :remind_at_time, :published_at, :remind_at, :total_price, :shipping_cost, :grades, :tags, :subjects, :nickname, :author, :source, :signup, :country]
+      expect(stores[:settings].keys).to eq [:no_default, :name, :email, :cell_phone, :public, :enabled, :age, :max_length, :rate, :price, :published_on, :remind_on, :published_at_time, :remind_at_time, :published_at, :remind_at, :total_price, :shipping_cost, :grades, :tags, :subjects, :nickname, :status, :role, :author, :source, :signup, :country]
     end
 
     it "can access keys even when accessors are not defined" do
@@ -805,6 +805,69 @@ shared_examples 'a store' do |retain_type = true, settings_type = :text|
     end
 
   end
+
+  describe 'enum attribute' do
+
+    it 'has the defined :default as initial value' do
+      expect(model.status).to eq 0
+    end
+
+    it 'casts symbol values to strings' do
+      model.status = :active
+      expect(model.status).to eq 1
+    end
+
+    it 'accepts string values' do
+      model.status = 'archived'
+      expect(model.status).to eq 2
+    end
+
+    it 'generates predicate methods' do
+      expect(model.pending?).to be true
+      model.status = :active
+      expect(model.pending?).to be false
+      expect(model.active?).to be true
+    end
+
+    it 'generates bang methods that save the record' do
+      model.save!
+      model.active!
+      expect(model.reload.status).to eq 1
+    end
+
+    it 'persists and reloads correctly' do
+      model.status = :archived
+      model.save!
+      expect(model.reload.status).to eq 2
+    end
+
+    describe 'with prefix: true' do
+
+      it 'has the defined :default as initial value' do
+        expect(model.role).to eq 'guest'
+      end
+
+      it 'generates prefixed predicate methods' do
+        expect(model.role_guest?).to be true
+        model.role = :user
+        expect(model.role_guest?).to be false
+        expect(model.role_user?).to be true
+      end
+
+      it 'generates prefixed bang methods that save the record' do
+        model.save!
+        model.role_admin!
+        expect(model.reload.role).to eq 'admin'
+      end
+
+      it 'does not generate unprefixed predicate methods' do
+        expect(model).not_to respond_to(:guest?)
+      end
+
+    end
+
+  end
+
 end
 
 shared_examples 'a db backed model' do
