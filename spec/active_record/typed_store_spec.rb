@@ -142,7 +142,11 @@ shared_examples 'any model' do
     end
 
     it 'allows #increment! when attribute is nil' do
-      expect { model.increment!(nil) }.to raise_error(ActiveModel::MissingAttributeError)
+      if Gem::Version.new(ActiveRecord::VERSION::STRING) >= Gem::Version.new('8.1')
+        expect { model.increment!(nil) }.to raise_error(ActiveRecord::ActiveRecordError, 'cannot update a new record')
+      else
+        expect { model.increment!(nil) }.to raise_error(ActiveModel::MissingAttributeError)
+      end
     end
   end
 
