@@ -41,12 +41,12 @@ module ActiveRecord::TypedStore
 
       dsl.accessors.each do |accessor_name, accessor_key|
         define_method("#{accessor_key}_changed?") do
-          send("#{store_attribute}_changed?") &&
-            send(store_attribute)[accessor_name] != send("#{store_attribute}_was")[accessor_name]
+          attribute_changed?(store_attribute) &&
+            read_attribute(store_attribute)[accessor_name] != attribute_was(store_attribute)[accessor_name]
         end
 
         define_method("#{accessor_key}_was") do
-          send("#{store_attribute}_was")[accessor_name]
+          attribute_was(store_attribute)[accessor_name]
         end
 
         define_method("restore_#{accessor_key}!") do
