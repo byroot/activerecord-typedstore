@@ -47,6 +47,9 @@ def define_columns(t, array: false)
     t.string :subjects, array: true, null: false, default: ['mathematics'].to_yaml
 
     t.string :nickname, blank: false, default: 'Please enter your nickname'
+
+    t.enum :status, values: [:pending, :active, :archived], default: :pending
+    t.enum :role, values: { guest: 'guest', user: 'user', admin: 'admin' }, default: :guest, _prefix: true
   end
 end
 

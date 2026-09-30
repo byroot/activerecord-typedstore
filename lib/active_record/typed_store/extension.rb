@@ -39,6 +39,10 @@ module ActiveRecord::TypedStore
       end
       store_accessor(store_attribute, dsl.accessors.keys, **store_options)
 
+      dsl.fields.each_value do |field|
+        field.register_accessors(self, key: dsl.accessors[field.name]) if field.is_a?(EnumField)
+      end
+
       dsl.accessors.each do |accessor_name, accessor_key|
         define_method("#{accessor_key}_changed?") do
           attribute_changed?(store_attribute) &&
