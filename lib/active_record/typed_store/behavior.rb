@@ -29,6 +29,17 @@ module ActiveRecord::TypedStore
         method = "#{attribute}_before_type_cast"
         undef_method(method) if method_defined?(method)
       end
+
+      private
+
+      def define_method_attribute(name, **options)
+        name = name.to_s
+        if store_accessors&.include?(name) && options.fetch(:as, name).to_s == name
+          return
+        end
+
+        super
+      end
     end
 
     def changes
