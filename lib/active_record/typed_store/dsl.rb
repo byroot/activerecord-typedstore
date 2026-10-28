@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_record/typed_store/field'
+require 'active_record/typed_store/enum_field'
 
 module ActiveRecord::TypedStore
   class DSL
@@ -67,6 +68,11 @@ module ActiveRecord::TypedStore
       end
     end
     alias_method :date_time, :datetime
+
+    def enum(name, values:, **options)
+      field = EnumField.new(name, values:, **options)
+      @fields[name] = field
+    end
 
     private
 
